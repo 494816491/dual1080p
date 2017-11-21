@@ -2590,7 +2590,7 @@ END_8X1080P_0:
     return s32Ret;
 }
 
-
+#if 0
 /******************************************************************************
 * function    : main()
 * Description : video preview sample
@@ -2604,6 +2604,7 @@ int main(int argc, char *argv[])
 
     exit(s32Ret);
 }
+#endif
 
 #ifdef __cplusplus
 #if __cplusplus

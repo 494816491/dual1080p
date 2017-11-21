@@ -16,6 +16,7 @@
 //char RTMP_H264_SERVER_IP[100] = "rtmp://192.168.22.3/chn%d";
 //char RTMP_H264_SERVER_IP[100] = "rtmp://192.168.22.2/chn%d";
 //char RTMP_H264_SERVER_IP[100] = "rtmp://192.168.22.2/publishlive/livestream";
+//char RTMP_H264_SERVER_IP[100] = "rtmp://192.168.22.2:6666/live/chn%d";
 char RTMP_H264_SERVER_IP[100] = "rtmp://192.168.22.2/live/chn%d";
 
 //this must set before write header
