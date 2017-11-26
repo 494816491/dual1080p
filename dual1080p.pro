@@ -18,7 +18,16 @@ SOURCES += \
     configdata.cpp \
     rtmp_h264.c \
     compose.c \
-    audio.c
+    audio.c \
+    stream_distribute.c \
+    container.c \
+    sqlite-amalgamation-3210000/sqlite3.c \
+    disk_manage.c \
+    osd.c \
+    tmp_fun.c \
+    text2bitmap.c \
+    utils.c \
+    utf2unicode.c
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -46,7 +55,13 @@ LIBS += -L/home/ln/hisi/dual1080p/ff_lib/lib \
         -lupvqe \
         -ldnvqe \
         -ljpeg \
-        -ldl
+        -ldl \
+        -lrt \
+        -L/home/ln/hisi/dual1080p \
+        -lfreetype \
+        -lz
+
+INCLUDEPATH += sqlite-amalgamation-3210000
 
 
 HEADERS += \
@@ -57,4 +72,15 @@ HEADERS += \
     debug.h \
     clog.h \
     configdata.h \
-    compose.h
+    compose.h \
+    stream_distribute.h \
+    container.h \
+    disk_manage.h \
+    sqlite-amalgamation-3210000/sqlite3.h \
+    sqlite-amalgamation-3210000/sqlite3ext.h \
+    osd.h \
+    audio.h \
+    text2bitmap.h \
+    common.h \
+    utils.h \
+    utf2unicode.h

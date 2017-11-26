@@ -75,6 +75,7 @@ typedef enum sample_vi_chn_set_e
     VI_CHN_SET_FILP        /* open filp */
 }SAMPLE_VI_CHN_SET_E;
 
+//#define SAMPLE_PIXEL_FORMAT         PIXEL_FORMAT_YUV_SEMIPLANAR_420
 #define SAMPLE_PIXEL_FORMAT         PIXEL_FORMAT_YUV_SEMIPLANAR_420
 
 typedef struct sample_vi_param_s
@@ -366,6 +367,7 @@ HI_S32 SAMPLE_COMM_VI_StartChn(VI_CHN ViChn, RECT_S *pstCapRect, SIZE_S *pstTarS
         case SAMPLE_VI_MODE_16_1080P:
         case SAMPLE_VI_MODE_4_3M:
             stChnAttr.enScanMode = VI_SCAN_PROGRESSIVE;
+            //stChnAttr.enScanMode = VI_SCAN_INTERLACED;
             break;
         default:
             SAMPLE_PRT("ViMode invaild!\n");
@@ -408,7 +410,8 @@ HI_S32 SAMPLE_COMM_VI_Mode2Param(SAMPLE_VI_MODE_E enViMode, SAMPLE_VI_PARAM_S *p
             pstViParam->s32ViDevCnt = 2;
             pstViParam->s32ViDevInterval = 1;
             pstViParam->s32ViChnCnt = 2;
-            pstViParam->s32ViChnInterval = 4;
+            //pstViParam->s32ViChnInterval = 4;
+            pstViParam->s32ViChnInterval = 2;
             break;
         case SAMPLE_VI_MODE_4_1080P:
         case SAMPLE_VI_MODE_4_3M:
@@ -547,6 +550,43 @@ VI_DEV_ATTR_S DEV_ATTR_6114_720P_2MUX_BASE =
     VI_DATA_TYPE_YUV
 };
 
+VI_DEV_ATTR_S DEV_ATTR_6124b_21080P_2MUX_BASE =
+{
+    /*interface mode*/
+    VI_MODE_BT656,
+    /*work mode*/
+    VI_WORK_MODE_2Multiplex,
+    /* r_mask    g_mask    b_mask*/
+    //{0xFF000000,    0x0},
+    {0xFF000000,    0xff000000},
+    //{0x0,    0x0},
+
+    /* for single/double edge, must be set when double edge*/
+    VI_CLK_EDGE_DOUBLE,
+
+    /*AdChnId*/
+    {-1, -1, -1, -1},
+    /*enDataSeq, just support YUV*/
+    VI_INPUT_DATA_YVYU,
+    /**/
+    {
+    /*port_vsync   port_vsync_neg     port_hsync        port_hsync_neg        */
+    VI_VSYNC_FIELD, VI_VSYNC_NEG_HIGH, VI_HSYNC_VALID_SINGNAL,VI_HSYNC_NEG_HIGH,VI_VSYNC_VALID_SINGAL,VI_VSYNC_VALID_NEG_HIGH,
+
+    /**/
+    /*hsync_hfb    hsync_act    hsync_hhb*/
+    {0,            0,        0,
+    /*vsync0_vhb vsync0_act vsync0_hhb*/
+     0,            0,        0,
+    /*vsync1_vhb vsync1_act vsync1_hhb*/
+     0,            0,            0}
+    },
+    /*whether use isp*/
+    VI_PATH_BYPASS,
+    /*data type*/
+    VI_DATA_TYPE_YUV
+};
+
 /*****************************************************************************
 * function : set vi mask.
 *****************************************************************************/
@@ -616,15 +656,18 @@ HI_S32 SAMPLE_COMM_VI_StartDev(VI_DEV ViDev, SAMPLE_VI_MODE_E enViMode)
             break;
         case SAMPLE_VI_MODE_8_720P:
         case SAMPLE_VI_MODE_16_720P:
-        case SAMPLE_VI_MODE_8_1080P:
             memcpy(&stViDevAttr,&DEV_ATTR_6114_720P_2MUX_BASE,sizeof(stViDevAttr));
             SAMPLE_COMM_VI_SetMask(ViDev,&stViDevAttr);
             break;
+        case SAMPLE_VI_MODE_8_1080P:
+            memcpy(&stViDevAttr,&DEV_ATTR_6124b_21080P_2MUX_BASE,sizeof(stViDevAttr));
+            SAMPLE_COMM_VI_SetMask(ViDev,&stViDevAttr);
+        break;
         default:
             SAMPLE_PRT("vi input type[%d] is invalid!\n", enViMode);
             return HI_FAILURE;
     }
-#if 1
+#if 0
     if(SAMPLE_VI_MODE_8_1080P == enViMode)
     {
         stViDevAttr.enClkEdge = VI_CLK_EDGE_DOUBLE;
@@ -696,6 +739,7 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
             SAMPLE_PRT("SAMPLE_COMM_VI_StartDev failed with %#x\n", s32Ret);
             return HI_FAILURE;
         }
+        //HI_MPI_VI_DisableDllSlave(ViDev);
     }
     
     /*** Start VI Chn ***/
@@ -707,6 +751,7 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
          || SAMPLE_VI_MODE_8_720P == enViMode)
         {
             /* When in the 8x1080p mode, bind chn 2,6,10,14 to way1 is needed */
+#if 1
             if (ViChn%4 != 0)
             {
                 s32Ret = HI_MPI_VI_GetChnBind(ViChn, &stChnBindAttr);
@@ -722,6 +767,7 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
                     } 
                 } 
             }
+#endif
         }
 
         s32Ret = SAMPLE_COMM_VI_StartChn(ViChn, &stCapRect, &stTargetSize, enViMode, VI_CHN_SET_NORMAL);
@@ -2167,8 +2213,10 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                         SAMPLE_PRT("save stream failed!\n");
                         break;
                     }
+#if 0
 					// ln debug
 					translate_venc_stream(i,  &stStream);
+#endif
 					
 
                     /*******************************************************
@@ -2217,14 +2265,14 @@ HI_S32 SAMPLE_COMM_VENC_StartGetStream(HI_S32 s32Cnt)
 /******************************************************************************
 * function : VI(D1: 8 windows) -> VPSS -> HD0(1080P@60) -> WBC -> SD0(D1)
 ******************************************************************************/
-HI_S32 SAMPLE_VIO_8_1080P_DUAL(HI_VOID)
+HI_S32 start_mpi_video_stream(HI_VOID)
 {
    	SAMPLE_VI_MODE_E enViMode = SAMPLE_VI_MODE_8_1080P;
 
-	VIDEO_NORM_E enNorm = VIDEO_ENCODING_MODE_NTSC;
+    VIDEO_NORM_E enNorm = VIDEO_ENCODING_MODE_PAL;
 
-    HI_U32 u32ViChnCnt = 2;
-    HI_S32 s32VpssGrpCnt = 2;
+    HI_U32 u32ViChnCnt = 4;
+    HI_S32 s32VpssGrpCnt = 4;
     
     VB_CONF_S stVbConf;
     VPSS_GRP VpssGrp;
@@ -2243,10 +2291,11 @@ HI_S32 SAMPLE_VIO_8_1080P_DUAL(HI_VOID)
     HI_CHAR ch;
     SIZE_S stSize;
     HI_U32 u32WndNum;
-	
+#if 0
 	VO_WBC VoWbc;
     VO_WBC_ATTR_S stWbcAttr;    
     VO_WBC_SOURCE_S stWbcSource;   
+#endif
 
     /******************************************
      step  1: init variable 

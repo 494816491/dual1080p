@@ -5,7 +5,7 @@ extern "C"{
 
 #endif
 #include "hi_type.h"
-HI_S32 SAMPLE_VIO_8_1080P_DUAL(HI_VOID);
+HI_S32 start_mpi_video_stream(HI_VOID);
 #ifdef __cplusplus
 }
 #endif

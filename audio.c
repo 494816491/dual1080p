@@ -406,7 +406,7 @@ HI_S32 SAMPLE_COMM_AUDIO_CreatTrdAencAdec(AENC_CHN AeChn, ADEC_CHN AdChn, FILE *
 
 
 
-HI_S32 SAMPLE_AUDIO_AiAenc(HI_VOID)
+int start_mpi_audio_stream()
 {
     HI_S32 i, s32Ret;
     AUDIO_DEV   AiDev = SAMPLE_AUDIO_AI_DEV;
