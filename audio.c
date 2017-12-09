@@ -26,8 +26,12 @@
 #include "mpi_hdmi.h"
 #include "hi_common.h"
 
+#include "debug.h"
+
 
 static HI_BOOL gs_bUserGetMode = HI_FALSE;
+
+#define WRITE_AUDIO_STREAM 0
 
 
 #define SAMPLE_AUDIO_PTNUMPERFRM   320
@@ -36,6 +40,8 @@ static HI_BOOL gs_bUserGetMode = HI_FALSE;
 #define SAMPLE_AUDIO_HDMI_AO_DEV 1
 #define SAMPLE_AUDIO_AI_DEV 0
 #define SAMPLE_AUDIO_AO_DEV 0
+#define SAMPLE_SYS_ALIGN_WIDTH  16
+
 
 static PAYLOAD_TYPE_E gs_enPayloadType = PT_G711A;
 
@@ -357,9 +363,13 @@ void *SAMPLE_COMM_AUDIO_AencProc(void *parg)
                 }
             }
 #endif
-
+#if 1
+            translate_audio_stream(0, &stStream);
+#endif
+#if WRITE_AUDIO_STREAM
             /* save audio stream to file */
             fwrite(stStream.pStream,1,stStream.u32Len, pstAencCtl->pfd);
+#endif
 
             /* finally you must release the stream */
             s32Ret = HI_MPI_AENC_ReleaseStream(pstAencCtl->AeChn, &stStream);
@@ -373,7 +383,9 @@ void *SAMPLE_COMM_AUDIO_AencProc(void *parg)
         }
     }
 
+#if WRITE_AUDIO_STREAM
     fclose(pstAencCtl->pfd);
+#endif
     pstAencCtl->bStart = HI_FALSE;
     return NULL;
 }
@@ -546,6 +558,7 @@ int start_mpi_audio_stream()
 
         printf("bind adec:%d to ao(%d,%d) ok \n", AdChn, AoDev, AoChn);
      }
+    while(1){}
 #if 0
     printf("\nplease press twice ENTER to exit this sample\n");
     getchar();
@@ -625,4 +638,79 @@ int start_mpi_audio_stream()
 #endif
 
     return HI_SUCCESS;
+}
+
+static HI_S32 SAMPLE_COMM_SYS_Init(VB_CONF_S *pstVbConf)
+{
+    MPP_SYS_CONF_S stSysConf = {0};
+    HI_S32 s32Ret = HI_FAILURE;
+    HI_S32 i;
+
+    HI_MPI_SYS_Exit();
+
+    for(i=0;i<VB_MAX_USER;i++)
+    {
+        HI_MPI_VB_ExitModCommPool(i);
+    }
+    for(i=0; i<VB_MAX_POOLS; i++)
+    {
+        HI_MPI_VB_DestroyPool(i);
+    }
+    HI_MPI_VB_Exit();
+
+    if (NULL == pstVbConf)
+    {
+        err_msg("input parameter is null, it is invaild!\n");
+        return HI_FAILURE;
+    }
+
+    s32Ret = HI_MPI_VB_SetConf(pstVbConf);
+    if (HI_SUCCESS != s32Ret)
+    {
+        err_msg("HI_MPI_VB_SetConf failed!\n");
+        return HI_FAILURE;
+    }
+
+    s32Ret = HI_MPI_VB_Init();
+    if (HI_SUCCESS != s32Ret)
+    {
+        err_msg("HI_MPI_VB_Init failed!\n");
+        return HI_FAILURE;
+    }
+
+    stSysConf.u32AlignWidth = SAMPLE_SYS_ALIGN_WIDTH;
+    s32Ret = HI_MPI_SYS_SetConf(&stSysConf);
+    if (HI_SUCCESS != s32Ret)
+    {
+        err_msg("HI_MPI_SYS_SetConf failed\n");
+        return HI_FAILURE;
+    }
+
+    s32Ret = HI_MPI_SYS_Init();
+    if (HI_SUCCESS != s32Ret)
+    {
+        err_msg("HI_MPI_SYS_Init failed!\n");
+        return HI_FAILURE;
+    }
+
+    return HI_SUCCESS;
+}
+
+
+
+int audio_mem_init()
+{
+    HI_S32 s32Ret = HI_SUCCESS;
+    VB_CONF_S stVbConf;
+
+
+    memset(&stVbConf, 0, sizeof(VB_CONF_S));
+
+    s32Ret = SAMPLE_COMM_SYS_Init(&stVbConf);
+    if (HI_SUCCESS != s32Ret)
+    {
+        printf("%s: system init failed with %d!\n", __FUNCTION__, s32Ret);
+        return HI_FAILURE;
+    }
+    return 0;
 }

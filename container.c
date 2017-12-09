@@ -500,6 +500,17 @@ int get_raw_stream_v(int chn, Mal_StreamBlock *block, __attribute__((unused)) vo
 
     return 0;
 }
+int container_send_video( Mal_StreamBlock *block)
+{
+    get_raw_stream_v(block->chn_num, block, block->chn_num);
+    return 0;
+}
+
+int container_send_audio( Mal_StreamBlock *block)
+{
+    get_raw_stream_a(block->chn_num, block, block->chn_num);
+    return 0;
+}
 
 int get_raw_stream_a(__attribute__((unused)) int chn, Mal_StreamBlock *block, void* opaque)
 {

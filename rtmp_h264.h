@@ -14,6 +14,8 @@ struct rtmp_chn_param_st{
     int video_h;
     char ip_addr[MAX_RTMP_URL_LEN];
 
+
+    int audio_enable;
     int audio_sample_rate;
     int audio_bit_width;
     int audio_sound_mode;
@@ -21,7 +23,7 @@ struct rtmp_chn_param_st{
 };
 
 
-int rtmp_h264_server_start();
+int rtmp_h264_server_init();
 
 int open_rtmp_stream(int chn);
 int close_rtmp_stream(int chn);

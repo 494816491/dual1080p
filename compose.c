@@ -38,6 +38,7 @@ extern "C"{
 #include "mpi_ai.h"
 #include "mpi_ao.h"
 #include "mpi_hdmi.h"
+#include "debug.h"
 
 
 
@@ -2051,6 +2052,7 @@ HI_S32 SAMPLE_COMM_VENC_SaveStream(PAYLOAD_TYPE_E enType,FILE *pFd, VENC_STREAM_
 ******************************************************************************/
 HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
 {
+    info_msg("SAMPLE_COMM_VENC_GetVencStreamProc\n");
     HI_S32 i;
     HI_S32 s32ChnTotal;
     VENC_CHN_ATTR_S stVencChnAttr;
@@ -2213,7 +2215,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                         SAMPLE_PRT("save stream failed!\n");
                         break;
                     }
-#if 0
+#if 1
 					// ln debug
 					translate_venc_stream(i,  &stStream);
 #endif
@@ -2262,6 +2264,38 @@ HI_S32 SAMPLE_COMM_VENC_StartGetStream(HI_S32 s32Cnt)
     return pthread_create(&gs_VencPid, 0, SAMPLE_COMM_VENC_GetVencStreamProc, (HI_VOID*)&gs_stPara);
 }
 
+int hisi_video_mem_init()
+{
+    VB_CONF_S stVbConf;
+    HI_U32 u32BlkSize;
+    HI_U32 u32ViChnCnt = 4;
+    VIDEO_NORM_E enNorm = VIDEO_ENCODING_MODE_PAL;
+    HI_S32 s32Ret = HI_SUCCESS;
+    /******************************************
+     step  1: init variable
+    ******************************************/
+    memset(&stVbConf,0,sizeof(VB_CONF_S));
+    u32BlkSize = SAMPLE_COMM_SYS_CalcPicVbBlkSize(enNorm,\
+                PIC_HD1080, SAMPLE_PIXEL_FORMAT, SAMPLE_SYS_ALIGN_WIDTH,COMPRESS_MODE_SEG);
+    stVbConf.u32MaxPoolCnt = 128;
+
+    /* video buffer*/
+    //todo: vb=15
+    stVbConf.astCommPool[0].u32BlkSize = u32BlkSize;
+    stVbConf.astCommPool[0].u32BlkCnt = u32ViChnCnt * 8;
+
+    /******************************************
+     step 2: mpp system init.
+    ******************************************/
+    s32Ret = SAMPLE_COMM_SYS_Init(&stVbConf);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("system init failed with %d!\n", s32Ret);
+        exit(-1);
+    }
+    return 0;
+}
+
 /******************************************************************************
 * function : VI(D1: 8 windows) -> VPSS -> HD0(1080P@60) -> WBC -> SD0(D1)
 ******************************************************************************/
@@ -2274,7 +2308,6 @@ HI_S32 start_mpi_video_stream(HI_VOID)
     HI_U32 u32ViChnCnt = 4;
     HI_S32 s32VpssGrpCnt = 4;
     
-    VB_CONF_S stVbConf;
     VPSS_GRP VpssGrp;
     VPSS_GRP_ATTR_S stGrpAttr;
     VPSS_CHN VpssChn_VoHD0 = VPSS_CHN2;
@@ -2287,38 +2320,10 @@ HI_S32 start_mpi_video_stream(HI_VOID)
     
     HI_S32 i;
     HI_S32 s32Ret = HI_SUCCESS;
-    HI_U32 u32BlkSize;
     HI_CHAR ch;
     SIZE_S stSize;
     HI_U32 u32WndNum;
-#if 0
-	VO_WBC VoWbc;
-    VO_WBC_ATTR_S stWbcAttr;    
-    VO_WBC_SOURCE_S stWbcSource;   
-#endif
 
-    /******************************************
-     step  1: init variable 
-    ******************************************/    
-    memset(&stVbConf,0,sizeof(VB_CONF_S));
-    u32BlkSize = SAMPLE_COMM_SYS_CalcPicVbBlkSize(enNorm,\
-                PIC_HD1080, SAMPLE_PIXEL_FORMAT, SAMPLE_SYS_ALIGN_WIDTH,COMPRESS_MODE_SEG);
-    stVbConf.u32MaxPoolCnt = 128;
-
-    /* video buffer*/
-    //todo: vb=15
-    stVbConf.astCommPool[0].u32BlkSize = u32BlkSize;
-    stVbConf.astCommPool[0].u32BlkCnt = u32ViChnCnt * 8;
-
-    /******************************************
-     step 2: mpp system init. 
-    ******************************************/
-    s32Ret = SAMPLE_COMM_SYS_Init(&stVbConf);
-    if (HI_SUCCESS != s32Ret)
-    {
-        SAMPLE_PRT("system init failed with %d!\n", s32Ret);
-        goto END_8X1080P_0;
-    }
 
     /******************************************
      step 3: start vi dev & chn
@@ -2573,23 +2578,7 @@ HI_S32 start_mpi_video_stream(HI_VOID)
 	enVoMode = VO_MODE_9MUX;
     while(1)
     {    
-        printf("press 'q' to exit this sample.\n"); 
- 
-        ch = getchar();
-        if(10 == ch)
-        {
-            continue;
-        }
-        getchar();
-        if ('q' == ch)
-        {
-            break;
-        }
-        else
-        {
-            SAMPLE_PRT("input invaild! please try again.\n");
-            continue;
-        }	
+        return 0;
     }
 
     /******************************************

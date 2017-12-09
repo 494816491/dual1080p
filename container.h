@@ -24,6 +24,8 @@ extern "C"{
 int get_raw_stream_v(int chn, Mal_StreamBlock *block, void* opaque);
 int get_raw_stream_a(int chn, Mal_StreamBlock *block, void* opaque);
 
+int container_send_audio( Mal_StreamBlock *block);
+int container_send_video( Mal_StreamBlock *block);
 
 typedef void (*get_ripe_stream_fun)(struct ripe_stream_s *stream);
 struct global_param_s{
