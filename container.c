@@ -484,6 +484,7 @@ int get_raw_stream_v(int chn, Mal_StreamBlock *block, __attribute__((unused)) vo
         }
     }
 #endif
+
     //4.decide whether to write file tailer,two conditions,one is when chn_param last_packet_pts < current hi_pts,second is when set_container_param
     if(chn_param->last_packet_pts < block->i_pts){
         pthread_mutex_lock(&chn_param->mutex);

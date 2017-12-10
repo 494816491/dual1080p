@@ -4,6 +4,9 @@
 #include <pthread.h>
 #include "sqlite3.h"
 #include "stdint.h"
+#define DISK_NUM 1
+
+#define VIDEO_SAVE_PATH "/mnt/usb"
 
 int disk_manage_init();
 int initialize_watch_disks_status();
@@ -23,10 +26,8 @@ struct storage_st{
 
 struct watch_disk_status_st{
     bool is_storage_exist;
-    int current_store_media; //0 hard_disk, 1 sd card
-    int current_disk_index; //
-    struct storage_st storage[2];
-    pthread_t format_thread_id[2];
+    struct storage_st storage[DISK_NUM];
+    pthread_t format_thread_id[DISK_NUM];
 };
 extern struct watch_disk_status_st watch_disk_status;
 

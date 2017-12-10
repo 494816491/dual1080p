@@ -9,7 +9,9 @@
 #define SQL_CLAUSE_LEN 1024
 #define MAX_FILE_NAME_LEN 1024
 #define VIDEO_PRE_LEN 12
-#define DB_PATH_NAME "index.sqlite"
+
+
+#define DB_PATH_NAME "/mnt/usb/index.sqlite"
 
 struct db_status_st{
     sqlite3 *db;
@@ -19,70 +21,6 @@ struct db_status_st{
 struct watch_disk_status_st watch_disk_status;
 static struct db_status_st db_status = { NULL, PTHREAD_MUTEX_INITIALIZER};
 
-int venc_control_param_to_monitor(int chn)
-{
-#if 0
-    int kinescope_mode = status_get_chn_venc_kinescope_mode(chn);
-    //info_msg("kinescope_mode  = %d\n", kinescope_mode);
-    bool kinescope_mode_save_flag = false;
-
-    switch(kinescope_mode){
-    case KINESCOPE_CYCLYE_MODE:
-        kinescope_mode_save_flag = true;
-        break;
-    case KINESCOPE_TIME_MODE:
-        if(should_kinescope_time_check(chn) == 1){
-            kinescope_mode_save_flag = true;
-        }else{
-            kinescope_mode_save_flag = false;
-        }
-        break;
-    case KINESCOPE_MANIPULATE_MODE:
-
-        break;
-    case KINESCOPE_CLOSE:
-        kinescope_mode_save_flag = false;
-        break;
-    default:
-        err_msg("wrong kinescope_mode\n");
-        break;
-    }
-    //2
-    bool venc_enable_flag = false;
-    venc_enable_flag = status_get_chn_venc_enable(chn);
-    //3,
-    bool venc_chn_is_used = false;
-#if 0
-    if(status_get_vi_mode() == STATUS_VI_MODE_NTSC || status_get_vi_mode() == STATUS_VI_MODE_PAL){
-        if(watch_get_actual_use_chn() > chn){
-          venc_chn_is_used  = true;
-        }
-    }else if(status_get_vi_mode() == STATUS_VI_MODE_720P){
-    }
-#endif
-    if(watch_get_actual_use_chn() > chn){
-        venc_chn_is_used  = true;
-    }
-    pthread_mutex_lock(&venc_chn_save.mutex);
-    if(watch_disk_status.is_storage_exist){
-        if(kinescope_mode_save_flag && venc_enable_flag  && venc_chn_is_used){
-            //info_msg("venc_chn_save.chn_save[chn] = SAVE_FILE_NORMAL\n");
-            venc_chn_save.chn_save[chn] = SAVE_FILE_NORMAL;
-        }else{
-            venc_chn_save.chn_save[chn] = SAVE_FILE_STOP;
-        }
-    }else{
-            venc_chn_save.chn_save[chn] = SAVE_FILE_STOP;
-    }
-    pthread_mutex_unlock(&venc_chn_save.mutex);
-#if 0
-    if(chn == 0){
-        info_msg("chn = %d,venc_chn_save.chn_save[chn] = %d, kinescope_mode_save_flag = %d, venc_enable_flag = %d\n", chn, venc_chn_save.chn_save[chn], kinescope_mode_save_flag, venc_enable_flag);
-    }
-#endif
-#endif
-    return 0;
-}
 
 static int update_sum_size(char *item, int num)
 {
@@ -122,7 +60,7 @@ static int check_chn_update_size(int chn_num)
     while(ret == SQLITE_ROW){
         char file_name[MAX_FILE_NAME_LEN] = {0};
         const char *rm_file = (const char *)sqlite3_column_text(stmt, 0);
-        sprintf(file_name, "/mnt/video%d/%s", watch_disk_status.current_disk_index, rm_file);
+        sprintf(file_name, "%s/%s", VIDEO_SAVE_PATH, rm_file);
 
         if(access(file_name, F_OK)){
             char delete_clause[SQL_CLAUSE_LEN] = {0};
@@ -241,80 +179,44 @@ int initialize_watch_disks_status()
     char shell_cmd[400];
     int i;
 
-    if(status_get_current_store_media() == 0){
-        watch_disk_status.current_store_media = 0;
-    }else if(status_get_current_store_media() == 1){
-        watch_disk_status.current_store_media = 1;
-    }
+    for(i = 0; i < DISK_NUM; i++){
+        //sd card
+        memset(shell_cmd, 0, sizeof(shell_cmd));
+        sprintf(shell_cmd,"mount | grep '/mnt/sd%d'", i);
+        ret = system(shell_cmd);
+        //info_msg("system ----- ret = ")
+        if(ret == 0){
+            int total_disk;
+            memset(&shell_cmd, 0, sizeof(shell_cmd));
+            watch_disk_status.storage[i].is_disk_exist  = true;
 
-    if(watch_disk_status.current_store_media == 0){
-        for(i = 0; i < 2; i++){
-            memset(shell_cmd, 0, sizeof(shell_cmd));
-            sprintf(shell_cmd,"mount | grep '/mnt/video%d'", i);
-            ret = system(shell_cmd);
-            if(ret == 0){
-                watch_disk_status.storage[i].is_disk_exist  = true;
-                //hard disk
-                memset(&shell_cmd, 0, sizeof(shell_cmd));
-                sprintf(shell_cmd, "df | grep /mnt/picture%d | awk '{print $2}'", i);
-                watch_disk_status.storage[i].picture_capability = shell_cmd_get_int(shell_cmd) * 0.95;
+            sprintf(shell_cmd, "df | grep /mnt/sd%d | awk '{print $2}'", i);
+            total_disk = shell_cmd_get_int(shell_cmd);
 
-                memset(&shell_cmd, 0, sizeof(shell_cmd));
-                sprintf(shell_cmd, "df | grep /mnt/video%d | awk '{print $2}'", i);
-                watch_disk_status.storage[i].video_capability = shell_cmd_get_int(shell_cmd) * 0.95;
+            watch_disk_status.storage[i].video_capability = total_disk * 9 / 10 * 0.95;
+            watch_disk_status.storage[i].picture_capability = total_disk / 10 * 0.95;
 
-                watch_disk_status.storage[i].remain_video_disk = watch_disk_status.storage[i].video_capability * 0.03;
-                watch_disk_status.storage[i].remain_pic_disk = watch_disk_status.storage[i].picture_capability * 0.03;
-            }else{
-                watch_disk_status.storage[i].is_disk_exist  = false;
-                watch_disk_status.storage[i].video_capability = 0;
-                watch_disk_status.storage[i].picture_capability = 0;
-            }
-        }
-    }else if(watch_disk_status.current_store_media == 1){
-        for(i = 0; i < 2; i++){
-            //sd card
-            memset(shell_cmd, 0, sizeof(shell_cmd));
-            sprintf(shell_cmd,"mount | grep '/mnt/sd%d'", i);
-            ret = system(shell_cmd);
-            //info_msg("system ----- ret = ")
-            if(ret == 0){
-                int total_disk;
-                memset(&shell_cmd, 0, sizeof(shell_cmd));
-                watch_disk_status.storage[i].is_disk_exist  = true;
-
-                sprintf(shell_cmd, "df | grep /mnt/sd%d | awk '{print $2}'", i);
-                total_disk = shell_cmd_get_int(shell_cmd);
-
-                watch_disk_status.storage[i].video_capability = total_disk * 9 / 10 * 0.95;
-                watch_disk_status.storage[i].picture_capability = total_disk / 10 * 0.95;
-
-                watch_disk_status.storage[i].remain_video_disk = watch_disk_status.storage[i].video_capability * 0.03;
-                watch_disk_status.storage[i].remain_pic_disk = watch_disk_status.storage[i].picture_capability * 0.03;
-                info_msg("remain video disk = %d, remain pic disk = %d\n", watch_disk_status.storage[i].remain_video_disk, watch_disk_status.storage[i].remain_pic_disk);
-            }else{
-                watch_disk_status.storage[i].is_disk_exist  = false;
-                watch_disk_status.storage[i].video_capability = 0;
-                watch_disk_status.storage[i].picture_capability = 0;
-            }
+            watch_disk_status.storage[i].remain_video_disk = watch_disk_status.storage[i].video_capability * 0.03;
+            watch_disk_status.storage[i].remain_pic_disk = watch_disk_status.storage[i].picture_capability * 0.03;
+            info_msg("remain video disk = %d, remain pic disk = %d\n", watch_disk_status.storage[i].remain_video_disk, watch_disk_status.storage[i].remain_pic_disk);
+        }else{
+            watch_disk_status.storage[i].is_disk_exist  = false;
+            watch_disk_status.storage[i].video_capability = 0;
+            watch_disk_status.storage[i].picture_capability = 0;
         }
     }
 
-    watch_disk_status.current_disk_index = status_get_current_store_index();
-    if(watch_disk_status.storage[watch_disk_status.current_disk_index].is_disk_exist  != true){
-        //find a avaiable storage
-        for(i = 0; i < 2; i++){
-            if(watch_disk_status.storage[i].is_disk_exist == true){
-                //保存当前的存储设备
-                status_set_current_store_index(i);
-                watch_disk_status.current_disk_index = i;
-                watch_disk_status.is_storage_exist = true;
-                break;
+    //初始化数据库
+    if(watch_disk_status.is_storage_exist){
+        if(db_status.db == NULL){
+            if(open_init_db() != 0){
+                err_msg("open_init_db failed\n");
+                return -1;
             }
+            //查找数据库中没有记录大小的文件，添加大小记录,开机做一次检查
+            check_database_size();
+            info_msg("after check_database_size\n");
         }
-        watch_disk_status.is_storage_exist = false;
-    }else{
-        watch_disk_status.is_storage_exist = true;
     }
 
     return 0;
@@ -395,11 +297,11 @@ int watch_find_delete_pic()
         int avaiable_disk;
         //info_msg("before get_picture_used_size\n");
         int used_size = get_picture_used_size(db_status.db, &db_status.mutex);
-        avaiable_disk = watch_disk_status.storage[watch_disk_status.current_disk_index].picture_capability - used_size;
+        avaiable_disk = watch_disk_status.storage[0].picture_capability - used_size;
         //info_msg(" current pic used size = %dKB avaiable pic disk = %dKB\n", used_size , avaiable_disk);
         //info_msg("watch_find_delete_pic while--------------\n");
         //if(avaiable_disk < status_get_pic_remain_disk()){
-        if(avaiable_disk < watch_disk_status.storage[watch_disk_status.current_disk_index].remain_pic_disk){
+        if(avaiable_disk < watch_disk_status.storage[0].remain_pic_disk){
             //info_msg("before delete_old_snap_file\n");
             //delete_old_snap_file(db_status.db, &db_status.mutex);
         }else{
@@ -415,7 +317,7 @@ int get_free_video_disk()
 
     int used_size = get_video_used_size(db_status.db, &db_status.mutex);
 
-    avilable = watch_disk_status.storage[watch_disk_status.current_disk_index].video_capability - used_size;
+    avilable = watch_disk_status.storage[0].video_capability - used_size;
     //info_msg("used video disk = %dKB, free video disk = %dKB\n", used_size, avilable);
     return avilable;
 }
@@ -430,7 +332,7 @@ int open_init_db()
 
     //1.open db file
     char db_file[MAX_FILE_NAME_LEN] = {0};
-    sprintf(db_file, "/mnt/video%d/%s", watch_disk_status.current_disk_index, DB_PATH_NAME);
+    sprintf(db_file,  DB_PATH_NAME);
     info_msg("==================open_init_db================\n", db_file);
 
     ret = sqlite3_open(db_file, &db_status.db);
@@ -638,7 +540,7 @@ int delete_pre_video_file(sqlite3 *db, pthread_mutex_t *mutex)
 
     info_msg("rm_file = %s\n", rm_file);
     char file_name[MAX_FILE_NAME_LEN] = {0};
-    sprintf(file_name, "/mnt/video%d/%s", watch_disk_status.current_disk_index, rm_file);
+    sprintf(file_name, "%s/%s", VIDEO_SAVE_PATH, rm_file);
 
     ret = remove(file_name);
     if(ret != 0){
@@ -786,26 +688,21 @@ int register_file_size(int chn_num, char *file_name)
 
 int register_file_piece(int chn_num, char *file_name)
 {
-#if 0
-    if(venc_chn_save.chn_register_count[chn_num] % 10 == 1){
-        int current_time = time(NULL);
-        int ret;
-        if(db_status.db == NULL){
-            return -1;
-        }
-        char register_clause[SQL_CLAUSE_LEN] = {0};
-        sprintf(register_clause, "update chn%d set register_time = %d where file_name = '%s';", chn_num, current_time, file_name + VIDEO_PRE_LEN);
-        //info_msg("register_clause = %s\n", register_clause);
-        char *mess = NULL;
-        ret = sqlite3_exec(db_status.db, register_clause, NULL, NULL, &mess);
-        if(ret != SQLITE_OK){
-            err_msg("%s", mess);
-            sqlite3_free(mess);
-            return -1;
-        }
+    int current_time = time(NULL);
+    int ret;
+    if(db_status.db == NULL){
+        return -1;
     }
-    venc_chn_save.chn_register_count[chn_num]++;
-#endif
+    char register_clause[SQL_CLAUSE_LEN] = {0};
+    sprintf(register_clause, "update chn%d set register_time = %d where file_name = '%s';", chn_num, current_time, file_name + VIDEO_PRE_LEN);
+    //info_msg("register_clause = %s\n", register_clause);
+    char *mess = NULL;
+    ret = sqlite3_exec(db_status.db, register_clause, NULL, NULL, &mess);
+    if(ret != SQLITE_OK){
+        err_msg("%s", mess);
+        sqlite3_free(mess);
+        return -1;
+    }
     return 0;
 }
 
@@ -818,4 +715,5 @@ int shell_cmd_get_int(char *cmd)
     pclose(out_file);
     return atoi(out_data);
 }
+
 
