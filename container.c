@@ -7,7 +7,7 @@
 #include "container.h"
 #include "debug.h"
 
-#define REGISTER_INDEX 1
+#define REGISTER_INDEX 0
 #define REGISTER_FILE_SIZE_BOUND 120000
 //#define TS_TEST
 
@@ -36,7 +36,6 @@ int container_init(get_ripe_stream_fun callback)
     int i;
     for(i = 0; i < 8; i++){
         pthread_mutex_init(&global_param->chn_params[i].mutex,NULL);
-        global_param->chn_params[i].pre_has_tailer = true;
         global_param->chn_params[i].chn_num = i;
     }
 
@@ -59,7 +58,6 @@ static inline int param_copy(struct chn_param_s *chn_param, struct container_par
     chn_param->video_size.u32Height = param->video_size.u32Height;
     chn_param->video_size.u32Width = param->video_size.u32Width;
     chn_param->video_frame_rate = param->video_frame_rate;
-    chn_param->new_file_flag = true;
 
     chn_param->audio_enable = param->audio_enable;
     chn_param->audio_sample_rate = param->audio_sample_rate;
@@ -323,6 +321,7 @@ static int write_tailer_to_file(struct chn_param_s *chn_param)
 
 static inline int judge_write_tailer_clean_flag(struct chn_param_s *chn_param)
 {
+#if 0
         //info_msg("===========judge_write_tailer_clean_flag before write_tailer_to_file===========,new_file_flag = %d,pre_has_tailer = %d\n", chn_param->new_file_flag, chn_param->pre_has_tailer);
     if(chn_param->new_file_flag && !chn_param->pre_has_tailer){
         write_tailer_to_file(chn_param);
@@ -336,6 +335,7 @@ static inline int judge_write_tailer_clean_flag(struct chn_param_s *chn_param)
         chn_param->video_stream = NULL;
         return 0;
     }
+#endif
     return 1;
 }
 
@@ -345,7 +345,6 @@ int switch_new_file(int chn, struct container_param_s *param)
 
     pthread_mutex_lock(&chn_param->mutex);
 
-    chn_param->new_file_flag = true;
     judge_write_tailer_clean_flag(chn_param);
 
     param_copy(chn_param, param);
@@ -360,7 +359,6 @@ int stop_container(int chn)
 
     pthread_mutex_lock(&chn_param->mutex);
 
-    chn_param->new_file_flag = 1;
     judge_write_tailer_clean_flag(chn_param);
 
     pthread_mutex_unlock(&chn_param->mutex);
@@ -447,33 +445,51 @@ static int write_audio_packet_to_file(struct chn_param_s *chn_param, Mal_StreamB
     return 0;
 }
 
+int container_start_new_file(char *file_name, int chn)
+{
+    int ret;
+    struct chn_param_s *chn_param = global_param->chn_params + chn;
+    //1.create new file or not
+    pthread_mutex_lock(&chn_param->mutex);
+    //info_msg("----------------------------------create_new_file----------------------\n");
+    ret = create_new_file(chn_param);
+    //info_msg("after create_new_file\n");
+    if(ret != 0){
+        err_msg("create_new_file failed \n");
+        ret = -1;
+        goto unlock_label;
+    }
+    chn_param->first_packet_pts = -1;
+    chn_param->last_packet_pts = -1;
+
+unlock_label:
+    pthread_mutex_unlock(&chn_param->mutex);
+    return 0;
+}
+
 
 int get_raw_stream_v(int chn, Mal_StreamBlock *block, __attribute__((unused)) void* opaque)
 {
     struct chn_param_s *chn_param = global_param->chn_params + chn;
-    int ret;
 
-    //1.create new file or not
-    if(chn_param->new_file_flag && chn_param->pre_has_tailer){
-        pthread_mutex_lock(&chn_param->mutex);
-        //info_msg("----------------------------------create_new_file----------------------\n");
-        ret = create_new_file(chn_param);
-        //info_msg("after create_new_file\n");
-        if(ret != 0){
-            err_msg("create_new_file failed \n");
-            return -1;
-        }
-        chn_param->new_file_flag = false;
-        chn_param->pre_has_tailer = false;
-        chn_param->first_packet_pts = block->i_pts;
-        chn_param->last_packet_pts = block->i_pts+ chn_param->last_time * 1000000;
+    pthread_mutex_lock(&chn_param->mutex);
+    if(!chn_param->out_context || !chn_param->video_stream){
         pthread_mutex_unlock(&chn_param->mutex);
+        return 0;
     }
+    pthread_mutex_unlock(&chn_param->mutex);
+
 
     //3.write data to file
     pthread_mutex_lock(&chn_param->mutex);
+    if(chn_param->first_packet_pts == -1){
+        chn_param->first_packet_pts = block->i_pts;
+        chn_param->last_packet_pts = block->i_pts+ chn_param->last_time * 1000000;
+    }
     int64_t pts = 0;
     write_video_packet_to_file(chn_param, block, &pts);
+
+
     pthread_mutex_unlock(&chn_param->mutex);
 
 #if REGISTER_INDEX
@@ -489,7 +505,6 @@ int get_raw_stream_v(int chn, Mal_StreamBlock *block, __attribute__((unused)) vo
     if(chn_param->last_packet_pts < block->i_pts){
         pthread_mutex_lock(&chn_param->mutex);
         //info_msg("chn_param->new_file_flag = true;last_pts = %llu, i_pts = %llu\n", chn_param->last_packet_pts, block->i_pts);
-        chn_param->new_file_flag = true;
         pthread_mutex_unlock(&chn_param->mutex);
     }
 
@@ -501,6 +516,9 @@ int get_raw_stream_v(int chn, Mal_StreamBlock *block, __attribute__((unused)) vo
 
     return 0;
 }
+
+
+
 int container_send_video( Mal_StreamBlock *block)
 {
     get_raw_stream_v(block->chn_num, block, block->chn_num);
@@ -521,13 +539,13 @@ int get_raw_stream_a(__attribute__((unused)) int chn, Mal_StreamBlock *block, vo
     //struct chn_param_s *chn_param = global_param->chn_params + chn;
 
     pthread_mutex_lock(&chn_param->mutex);
-
-    if(chn_param->new_file_flag && chn_param->pre_has_tailer){
-        //err_msg("file is not ready to write audio_frame\n");
+    if(!chn_param->out_context || !chn_param->audio_stream){
         pthread_mutex_unlock(&chn_param->mutex);
         return 0;
     }
+    pthread_mutex_unlock(&chn_param->mutex);
 
+    pthread_mutex_lock(&chn_param->mutex);
     write_audio_packet_to_file(chn_param, block);
     pthread_mutex_unlock(&chn_param->mutex);
     return 0;
@@ -539,9 +557,6 @@ int container_destory()
     int i;
     for(i = 0; i < 8; i++){
         pthread_mutex_destroy(&global_param->chn_params[i].mutex);
-        if(!global_param->chn_params[i].pre_has_tailer){
-            write_tailer_to_file(&global_param->chn_params[i]);
-        }
     }
 
     free(global_param->chn_params);

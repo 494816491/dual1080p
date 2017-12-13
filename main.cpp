@@ -15,8 +15,8 @@ int main(int argc, char *argv[])
 #if 0
     ConfigData data("/mnt/rtmp_app.ini");
     //some init
-    container_init(NULL);
 #endif
+    container_init(NULL);
     rtmp_h264_server_init();
     hisi_video_mem_init();
 

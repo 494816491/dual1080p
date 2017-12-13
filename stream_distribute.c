@@ -92,16 +92,16 @@ void *distribute_stream_thread_func(void *data)
 
         //work
         if(thread_info->callback){
-            info_msg("before %d callback", thread_info->thread);
+            //info_msg("before %d callback", thread_info->thread);
             thread_info->callback(thread_info->block);
-            info_msg("after %d callback", thread_info->thread);
+            //info_msg("after %d callback", thread_info->thread);
         }
 
         //get mutex to clear work_bit
         pthread_mutex_lock(&stream_cond->mutex);
-        info_msg("before stream_cond->work_status = %d\n", stream_cond->work_status);
+        //info_msg("before stream_cond->work_status = %d\n", stream_cond->work_status);
         stream_cond->work_status = stream_cond->work_status & ~(0x1 << thread_info->work_status_bit);
-        info_msg("after stream_cond->work_status = %d\n", stream_cond->work_status);
+        //info_msg("after stream_cond->work_status = %d\n", stream_cond->work_status);
 
         //say work is done, release mutex
         pthread_cond_broadcast(&stream_cond->work_cond);
@@ -129,11 +129,18 @@ int stream_distri_init()
             send_rtmp_audio_stream,
             send_rtmp_video_stream,
             container_send_audio,
-            container_send_audio
+            container_send_video,
 };
 
     //for(i = 0; i < 4; i++){
     for(i = 1; i < 2; i++){
+        struct distri_thread_info_st *thread_info  = thread_infos[i];
+        int (*callback)(Mal_StreamBlock *block) = callbacks[i];
+        thread_info->callback = callback;
+        pthread_create(&thread_info->thread, NULL, distribute_stream_thread_func, thread_info);
+    }
+
+    for(i = 3; i < 4; i++){
         struct distri_thread_info_st *thread_info  = thread_infos[i];
         int (*callback)(Mal_StreamBlock *block) = callbacks[i];
         thread_info->callback = callback;
@@ -176,7 +183,7 @@ void translate_venc_stream(int channel,  VENC_STREAM_S *pstStream)
 {
     int i=0;
     Mal_StreamBlock block;
-    info_msg("block.chn_num = %d\n", channel);
+    //info_msg("block.chn_num = %d\n", channel);
 
     if(channel >= 2)
         return;
@@ -253,8 +260,11 @@ int start_watch_routine()
     struct rtmp_chn_param_st param = {0};
     param.audio_enable = 0;
     param.chn_num = 0;
-    //sprintf(param.ip_addr, "rtmp://192.168.22.2/live/chn0");
+#if 1
+    sprintf(param.ip_addr, "rtmp://192.168.22.2/live/chn0");
+#else
     sprintf(param.ip_addr, "rtmp://ps3.live.panda.tv/live_panda/fdd3dac64c9f2df18898a695b1b2bfa5?sign=6cb56c29a6924d6ac20790c91b4ee06d&time=1512825939&wm=2&wml=1&vr=6&extra=0");
+#endif
 
     param.video_frame_rate = 25;
     param.video_w = 1920;
@@ -262,7 +272,6 @@ int start_watch_routine()
     set_rtmp_chn_param(0, &param);
     open_rtmp_stream(0);
 
-    initialize_watch_disks_status();
 
     for(i = 0; i < 1; i++){
         struct container_param_s param = {0};
@@ -275,13 +284,13 @@ int start_watch_routine()
     struct timespec tp;
     clock_gettime(CLOCK_MONOTONIC, &tp);
 
+    disk_manage_init();
+    container_start_new_file("/mnt/usb/test.mkv", 0);
+
     while(1){
 #if 1
         time_slice++;
-        //info_msg("while1 \n");
-        if(watch_disk_status.is_storage_exist){
-            //info_msg("while2 \n");
-#if 1
+        if(is_disk_is_exit()){
             if((time_slice & 0b111111) == 0b11){
                 int free_disk;
                 //info_msg("before get_free_video_disk\n");
@@ -297,8 +306,10 @@ int start_watch_routine()
                     free_disk = get_free_video_disk();
                 }
             }
-#endif
+        }else{
+            info_msg("disk is not exist");
         }
+
 #if MAL_VI_INPUT_VIDEO
         //info_msg("while7 \n");
         draw_osd_1s();

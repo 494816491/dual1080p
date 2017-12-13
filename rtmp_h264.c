@@ -338,7 +338,7 @@ int send_rtmp_video_stream(Mal_StreamBlock *block)
         free(packet_buff);
     }
 
-    info_msg("after send_rtmp_video_stream");
+    //info_msg("after send_rtmp_video_stream");
 
     return 0;
 }

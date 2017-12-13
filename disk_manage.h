@@ -8,8 +8,9 @@
 
 #define VIDEO_SAVE_PATH "/mnt/usb"
 
+int is_disk_is_exit();
+
 int disk_manage_init();
-int initialize_watch_disks_status();
 int open_init_db();
 int check_database_size();
 int venc_control_param_to_monitor(int chn);

@@ -167,13 +167,7 @@ int check_database_size()
     return 0;
 }
 
-
-int disk_manage_init()
-{
-    return 0;
-}
-
-int initialize_watch_disks_status()
+static int initialize_watch_disks_status()
 {
     int ret;
     char shell_cmd[400];
@@ -221,6 +215,13 @@ int initialize_watch_disks_status()
 
     return 0;
 }
+
+int disk_manage_init()
+{
+    initialize_watch_disks_status();
+    return 0;
+}
+
 
 
 static int get_video_used_size(sqlite3 *db, pthread_mutex_t *mutex)
@@ -714,6 +715,11 @@ int shell_cmd_get_int(char *cmd)
     fread(out_data, sizeof(out_data), 1, out_file);
     pclose(out_file);
     return atoi(out_data);
+}
+
+int is_disk_is_exit()
+{
+    return watch_disk_status.is_storage_exist;
 }
 
 

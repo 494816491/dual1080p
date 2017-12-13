@@ -57,12 +57,10 @@ struct container_param_s{
 //muxer
 struct chn_param_s{
     int chn_num;
-    bool new_file_flag;
     bool video_enable;
     bool audio_enable;
     bool audio_write_ready;
     bool is_writing_file;
-    bool pre_has_tailer;
     char file_dir[MAX_FILE_NAME_LEN];
     char file_name[MAX_FILE_NAME_LEN];
     uint64_t  last_time;
@@ -90,6 +88,9 @@ struct chn_param_s{
 
 int get_container_param(int chn, struct container_param_s *param);
 int set_container_param(int chn, struct container_param_s *param);
+
+
+int container_start_new_file(char *file_name, int chn);
 
 //async
 int switch_new_file(int chn, struct container_param_s *param);
