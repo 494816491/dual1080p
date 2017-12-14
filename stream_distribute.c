@@ -283,6 +283,7 @@ int start_watch_routine()
     uint32_t time_slice = 0;
     struct timespec tp;
     clock_gettime(CLOCK_MONOTONIC, &tp);
+    int last_sec = tp.tv_sec;
 
     disk_manage_init();
     container_start_new_file("/mnt/usb/test.mkv", 0);
@@ -310,6 +311,7 @@ int start_watch_routine()
             info_msg("disk is not exist");
         }
 
+
 #if MAL_VI_INPUT_VIDEO
         //info_msg("while7 \n");
         draw_osd_1s();
@@ -321,9 +323,15 @@ int start_watch_routine()
         struct timespec current_tp;
         //info_msg("while8 \n");
         clock_gettime(CLOCK_MONOTONIC, &current_tp);
-        //printf("current time = %ld, tp time = %ld\n", (long)current_tp.tv_sec, (long)tp.tv_sec);
+
+        if(current_tp.tv_sec - last_sec > 60){
+            last_sec = current_tp.tv_sec;
+            info_msg("switch_new_file");
+            switch_new_file(0, NULL);
+        }
         if(current_tp.tv_sec - tp.tv_sec  > 5 ){
             tp = current_tp;
+
         }
         //info_msg("while9 \n");
         tp.tv_sec++;

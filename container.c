@@ -260,7 +260,6 @@ static int create_new_file(struct chn_param_s *chn_param)
     }
 
     //av_dump_format(chn_param->out_context, 0, chn_param->file_name, 1);
-#ifndef TS_TEST
     if (!(chn_param->out_context->oformat->flags & AVFMT_NOFILE))
     {
         //info_msg( "before avio_open\n");
@@ -273,7 +272,6 @@ static int create_new_file(struct chn_param_s *chn_param)
             return 1;
         }
     }
-#endif
 
     ret = avformat_write_header(chn_param->out_context, NULL);
     if (ret < 0) {
@@ -288,7 +286,8 @@ static int create_new_file(struct chn_param_s *chn_param)
     chn_param->register_size_bound = REGISTER_FILE_SIZE_BOUND;
 
 #endif
-    chn_param->audio_write_ready = true;
+
+    chn_param->first_packet_pts = -1;
 
     return 0;
 }
@@ -321,15 +320,11 @@ static int write_tailer_to_file(struct chn_param_s *chn_param)
 
 static inline int judge_write_tailer_clean_flag(struct chn_param_s *chn_param)
 {
-#if 0
-        //info_msg("===========judge_write_tailer_clean_flag before write_tailer_to_file===========,new_file_flag = %d,pre_has_tailer = %d\n", chn_param->new_file_flag, chn_param->pre_has_tailer);
-    if(chn_param->new_file_flag && !chn_param->pre_has_tailer){
+#if 1
+    if(chn_param->out_context){
         write_tailer_to_file(chn_param);
-        //info_msg("===========judge_write_tailer_clean_flag before write_tailer_to_file===========2\n");
 
-        chn_param->pre_has_tailer = true;
-        chn_param->first_packet_pts = 0;
-        chn_param->last_packet_pts = 0;
+        chn_param->first_packet_pts = -1;
         chn_param->out_context = NULL;
         chn_param->audio_stream = NULL;
         chn_param->video_stream = NULL;
@@ -347,7 +342,9 @@ int switch_new_file(int chn, struct container_param_s *param)
 
     judge_write_tailer_clean_flag(chn_param);
 
-    param_copy(chn_param, param);
+    //param_copy(chn_param, param);
+
+    create_new_file(chn_param);
 
     pthread_mutex_unlock(&chn_param->mutex);
     return 0;
@@ -459,8 +456,6 @@ int container_start_new_file(char *file_name, int chn)
         ret = -1;
         goto unlock_label;
     }
-    chn_param->first_packet_pts = -1;
-    chn_param->last_packet_pts = -1;
 
 unlock_label:
     pthread_mutex_unlock(&chn_param->mutex);
@@ -477,18 +472,12 @@ int get_raw_stream_v(int chn, Mal_StreamBlock *block, __attribute__((unused)) vo
         pthread_mutex_unlock(&chn_param->mutex);
         return 0;
     }
-    pthread_mutex_unlock(&chn_param->mutex);
-
-
     //3.write data to file
-    pthread_mutex_lock(&chn_param->mutex);
     if(chn_param->first_packet_pts == -1){
         chn_param->first_packet_pts = block->i_pts;
-        chn_param->last_packet_pts = block->i_pts+ chn_param->last_time * 1000000;
     }
     int64_t pts = 0;
     write_video_packet_to_file(chn_param, block, &pts);
-
 
     pthread_mutex_unlock(&chn_param->mutex);
 
@@ -500,19 +489,6 @@ int get_raw_stream_v(int chn, Mal_StreamBlock *block, __attribute__((unused)) vo
         }
     }
 #endif
-
-    //4.decide whether to write file tailer,two conditions,one is when chn_param last_packet_pts < current hi_pts,second is when set_container_param
-    if(chn_param->last_packet_pts < block->i_pts){
-        pthread_mutex_lock(&chn_param->mutex);
-        //info_msg("chn_param->new_file_flag = true;last_pts = %llu, i_pts = %llu\n", chn_param->last_packet_pts, block->i_pts);
-        pthread_mutex_unlock(&chn_param->mutex);
-    }
-
-    pthread_mutex_lock(&chn_param->mutex);
-
-    judge_write_tailer_clean_flag(chn_param);
-
-    pthread_mutex_unlock(&chn_param->mutex);
 
     return 0;
 }
@@ -534,18 +510,14 @@ int container_send_audio( Mal_StreamBlock *block)
 int get_raw_stream_a(__attribute__((unused)) int chn, Mal_StreamBlock *block, void* opaque)
 {
     int video_chn = (int )opaque;
-    //info_msg("get_raw_stream_a video_chn = %d\n", video_chn);
+
     struct chn_param_s *chn_param = global_param->chn_params + video_chn;
-    //struct chn_param_s *chn_param = global_param->chn_params + chn;
 
     pthread_mutex_lock(&chn_param->mutex);
     if(!chn_param->out_context || !chn_param->audio_stream){
         pthread_mutex_unlock(&chn_param->mutex);
         return 0;
     }
-    pthread_mutex_unlock(&chn_param->mutex);
-
-    pthread_mutex_lock(&chn_param->mutex);
     write_audio_packet_to_file(chn_param, block);
     pthread_mutex_unlock(&chn_param->mutex);
     return 0;
