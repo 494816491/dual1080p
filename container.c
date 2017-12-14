@@ -7,7 +7,7 @@
 #include "container.h"
 #include "debug.h"
 
-#define REGISTER_INDEX 0
+#define REGISTER_INDEX 1
 #define REGISTER_FILE_SIZE_BOUND 120000
 //#define TS_TEST
 
@@ -480,7 +480,7 @@ int get_raw_stream_v(int chn, Mal_StreamBlock *block, __attribute__((unused)) vo
     write_video_packet_to_file(chn_param, block, &pts);
 
     pthread_mutex_unlock(&chn_param->mutex);
-
+#if 0
 #if REGISTER_INDEX
     if(block->i_flags == BLOCK_H264E_NALU_ISLICE ){
         ret = register_file_piece(chn_param->chn_num, chn_param->file_name);
@@ -488,6 +488,7 @@ int get_raw_stream_v(int chn, Mal_StreamBlock *block, __attribute__((unused)) vo
             err_msg("register_file_piece error\n");
         }
     }
+#endif
 #endif
 
     return 0;

@@ -292,20 +292,28 @@ int start_watch_routine()
 #if 1
         time_slice++;
         if(is_disk_is_exit()){
-            if((time_slice & 0b111111) == 0b11){
-                int free_disk;
-                //info_msg("before get_free_video_disk\n");
-                free_disk = get_free_video_disk();
-                //info_msg("after get_free_video_disk\n");
-
+            if((time_slice % 60) == 59){
                 //删除之前的数据
-                while(free_disk <= watch_disk_status.storage[0].remain_video_disk){
-                    ret = delete_pre_video_file(db_status.db, &db_status.mutex);
+                while(should_delete_old_file()){
+                    ret = delete_pre_video_file();
                     if(ret != 0){
                         err_msg("rm_pre_file failed\n");
                     }
-                    free_disk = get_free_video_disk();
                 }
+            }
+
+            //是否需要切换新的文件
+            struct timespec current_tp;
+            clock_gettime(CLOCK_MONOTONIC, &current_tp);
+
+            if(current_tp.tv_sec - last_sec > 60){
+                last_sec = current_tp.tv_sec;
+                info_msg("switch_new_file");
+                switch_new_file(0, NULL);
+            }
+            if(current_tp.tv_sec - tp.tv_sec  > 5 ){
+                tp = current_tp;
+
             }
         }else{
             info_msg("disk is not exist");
@@ -324,23 +332,16 @@ int start_watch_routine()
         //info_msg("while8 \n");
         clock_gettime(CLOCK_MONOTONIC, &current_tp);
 
-        if(current_tp.tv_sec - last_sec > 60){
-            last_sec = current_tp.tv_sec;
-            info_msg("switch_new_file");
-            switch_new_file(0, NULL);
-        }
         if(current_tp.tv_sec - tp.tv_sec  > 5 ){
             tp = current_tp;
 
         }
-        //info_msg("while9 \n");
+
         tp.tv_sec++;
         ret = clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &tp, NULL);
-        //info_msg("while10 \n");
         if(ret != 0){
             info_msg("clock_nanosleep failed\n");
         }
-        //info_msg("clock_nanosleep\n");
     }
 
     //回收资源

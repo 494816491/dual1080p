@@ -9,17 +9,33 @@
 #define SQL_CLAUSE_LEN 1024
 #define MAX_FILE_NAME_LEN 1024
 #define VIDEO_PRE_LEN 12
+#define DISK_NUM 1
+#define STORAGE_INDEX 0
 
 
 #define DB_PATH_NAME "/mnt/usb/index.sqlite"
+
+struct storage_st{
+    bool is_disk_exist;
+    int picture_capability;
+    int video_capability;
+    int remain_video_disk;
+    int remain_pic_disk;
+};
 
 struct db_status_st{
     sqlite3 *db;
     pthread_mutex_t mutex;
 };
 
-struct watch_disk_status_st watch_disk_status;
+struct watch_disk_status_st{
+    struct storage_st storage[DISK_NUM];
+    pthread_t format_thread_id[DISK_NUM];
+};
+
+static struct watch_disk_status_st watch_disk_status;
 static struct db_status_st db_status = { NULL, PTHREAD_MUTEX_INITIALIZER};
+
 
 
 static int update_sum_size(char *item, int num)
@@ -176,7 +192,9 @@ static int initialize_watch_disks_status()
     for(i = 0; i < DISK_NUM; i++){
         //sd card
         memset(shell_cmd, 0, sizeof(shell_cmd));
-        sprintf(shell_cmd,"mount | grep '/mnt/sd%d'", i);
+
+        //sprintf(shell_cmd,"mount | grep '/mnt/sd%d'", i);
+        sprintf(shell_cmd,"mount | grep '%s'", VIDEO_SAVE_PATH);
         ret = system(shell_cmd);
         //info_msg("system ----- ret = ")
         if(ret == 0){
@@ -184,7 +202,8 @@ static int initialize_watch_disks_status()
             memset(&shell_cmd, 0, sizeof(shell_cmd));
             watch_disk_status.storage[i].is_disk_exist  = true;
 
-            sprintf(shell_cmd, "df | grep /mnt/sd%d | awk '{print $2}'", i);
+            //sprintf(shell_cmd, "df | grep /mnt/sd%d | awk '{print $2}'", i);
+            sprintf(shell_cmd,"df | grep '%s'| awk '{print $2}'", VIDEO_SAVE_PATH);
             total_disk = shell_cmd_get_int(shell_cmd);
 
             watch_disk_status.storage[i].video_capability = total_disk * 9 / 10 * 0.95;
@@ -201,7 +220,7 @@ static int initialize_watch_disks_status()
     }
 
     //初始化数据库
-    if(watch_disk_status.is_storage_exist){
+    if(watch_disk_status.storage[STORAGE_INDEX].is_disk_exist){
         if(db_status.db == NULL){
             if(open_init_db() != 0){
                 err_msg("open_init_db failed\n");
@@ -298,11 +317,11 @@ int watch_find_delete_pic()
         int avaiable_disk;
         //info_msg("before get_picture_used_size\n");
         int used_size = get_picture_used_size(db_status.db, &db_status.mutex);
-        avaiable_disk = watch_disk_status.storage[0].picture_capability - used_size;
+        avaiable_disk = watch_disk_status.storage[STORAGE_INDEX].picture_capability - used_size;
         //info_msg(" current pic used size = %dKB avaiable pic disk = %dKB\n", used_size , avaiable_disk);
         //info_msg("watch_find_delete_pic while--------------\n");
         //if(avaiable_disk < status_get_pic_remain_disk()){
-        if(avaiable_disk < watch_disk_status.storage[0].remain_pic_disk){
+        if(avaiable_disk < watch_disk_status.storage[STORAGE_INDEX].remain_pic_disk){
             //info_msg("before delete_old_snap_file\n");
             //delete_old_snap_file(db_status.db, &db_status.mutex);
         }else{
@@ -312,15 +331,26 @@ int watch_find_delete_pic()
     return 0;
 }
 
-int get_free_video_disk()
+static int get_free_video_disk()
 {
     int avilable;
 
     int used_size = get_video_used_size(db_status.db, &db_status.mutex);
 
-    avilable = watch_disk_status.storage[0].video_capability - used_size;
+    avilable = watch_disk_status.storage[STORAGE_INDEX].video_capability - used_size;
     //info_msg("used video disk = %dKB, free video disk = %dKB\n", used_size, avilable);
     return avilable;
+}
+
+int should_delete_old_file()
+{
+    int free_disk;
+    free_disk = get_free_video_disk();
+    if(free_disk <= watch_disk_status.storage[STORAGE_INDEX].remain_video_disk){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 
@@ -503,7 +533,7 @@ int open_init_db()
 
 
 
-int delete_pre_video_file(sqlite3 *db, pthread_mutex_t *mutex)
+static int __delete_pre_video_file(sqlite3 *db, pthread_mutex_t *mutex)
 {
     char find_rm_file[SQL_CLAUSE_LEN * 2] ="select * from(select rowid,*  from chn0  order by rowid limit 1) union all select * from (select rowid,*  from chn1  order by rowid limit 1) union all select * from(select rowid,*  from chn2  order by rowid limit 1) union all select * from(select rowid,*  from chn3  order by rowid limit 1) union all select * from(select rowid,*  from chn4  order by rowid limit 1) union all select * from (select rowid,*  from chn5  order by rowid limit 1) union all select * from (select rowid,*  from chn6  order by rowid limit 1) union all select * from (select rowid,*  from chn7  order by rowid limit 1) order by start_time limit 1;";
 
@@ -576,6 +606,12 @@ ERR_HANDLE:
     pthread_mutex_unlock(mutex);
     return ret;
 
+}
+
+int delete_pre_video_file()
+{
+    __delete_pre_video_file(db_status.db, &db_status.mutex);
+    return 0;
 }
 
 static int add_file_row(char *file_name, int has_voice, int chn_num, int start_time)
@@ -719,7 +755,7 @@ int shell_cmd_get_int(char *cmd)
 
 int is_disk_is_exit()
 {
-    return watch_disk_status.is_storage_exist;
+    return watch_disk_status.storage[STORAGE_INDEX].is_disk_exist;
 }
 
 
