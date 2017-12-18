@@ -193,6 +193,29 @@ int osd_open()
             stOverlayExChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 255;
             stOverlayExChnAttr.unChnAttr.stOverlayChn.u32Layer = 1;
 #endif
+
+#if 0//can not attach why?
+            {
+            int dev, chn;
+
+            for(dev = 0; dev < 4; dev++){
+
+                for(chn = 0; chn < 4; chn++){
+
+                    connect_chn.enModId = HI_ID_VPSS;
+                    connect_chn.s32DevId = dev;
+                    connect_chn.s32ChnId = chn;
+
+                    error = HI_MPI_RGN_AttachToChn(handle, &connect_chn, &stOverlayExChnAttr);
+                    if(HI_SUCCESS != error){
+                        err_msg("HI_MPI_RGN_AttachToChn failed with  %#x! handle = %d\n", error, handle);
+                        return -1;
+                    }
+                }
+            }
+            }
+#endif
+#if 1
             connect_chn.enModId = HI_ID_VPSS;
             connect_chn.s32DevId = 1;
             connect_chn.s32ChnId = 3;
@@ -202,6 +225,8 @@ int osd_open()
                 err_msg("HI_MPI_RGN_AttachToChn failed with  %#x! handle = %d\n", error, handle);
 				return -1;
 			}
+#endif
+
             info_msg("HI_MPI_RGN_AttachToChn");
 	}
 	return 0;

@@ -260,10 +260,10 @@ int start_watch_routine()
     struct rtmp_chn_param_st param = {0};
     param.audio_enable = 0;
     param.chn_num = 0;
-#if 1
+#if 0
     sprintf(param.ip_addr, "rtmp://192.168.22.2/live/chn0");
 #else
-    sprintf(param.ip_addr, "rtmp://ps3.live.panda.tv/live_panda/fdd3dac64c9f2df18898a695b1b2bfa5?sign=6cb56c29a6924d6ac20790c91b4ee06d&time=1512825939&wm=2&wml=1&vr=6&extra=0");
+    sprintf(param.ip_addr, "rtmp://ps3.live.panda.tv/live_panda/fdd3dac64c9f2df18898a695b1b2bfa5?sign=1467df8ab3fe03ec2ce4d29049253f12&time=1513438213&wm=2&wml=1&vr=6&extra=0");
 #endif
 
     param.video_frame_rate = 25;

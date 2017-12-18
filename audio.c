@@ -698,19 +698,3 @@ static HI_S32 SAMPLE_COMM_SYS_Init(VB_CONF_S *pstVbConf)
 
 
 
-int audio_mem_init()
-{
-    HI_S32 s32Ret = HI_SUCCESS;
-    VB_CONF_S stVbConf;
-
-
-    memset(&stVbConf, 0, sizeof(VB_CONF_S));
-
-    s32Ret = SAMPLE_COMM_SYS_Init(&stVbConf);
-    if (HI_SUCCESS != s32Ret)
-    {
-        printf("%s: system init failed with %d!\n", __FUNCTION__, s32Ret);
-        return HI_FAILURE;
-    }
-    return 0;
-}

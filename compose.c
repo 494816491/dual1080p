@@ -1097,7 +1097,7 @@ HI_S32 SAMPLE_COMM_VO_StartChn(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
     //for (i=0; i<u32WndNum; i++)
     for (i=0; i<2; i++)
     {
-#if 0
+#if 1
         stChnAttr.stRect.s32X       = ALIGN_BACK((u32Width/u32Square) * (i%u32Square), 2);
         stChnAttr.stRect.s32Y       = ALIGN_BACK((u32Height/u32Square) * (i/u32Square), 2);
         stChnAttr.stRect.u32Width   = ALIGN_BACK(u32Width/u32Square, 2);
