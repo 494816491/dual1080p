@@ -141,75 +141,68 @@ static int freeType_exit(void)
 
 int osd_open()
 {
-	int i,j, error;
+    int i, error;
 	RGN_HANDLE handle;
 	VI_CHN viChn;
     RGN_ATTR_S stOverlayExAttr;
-    MPP_CHN_S stOverlayExChn;
+    MPP_CHN_S connect_chn;
     RGN_CHN_ATTR_S stOverlayExChnAttr;
 
 	if(freeType_osd_init() !=0)
 		return -1;
-	j =-1;
-	for(i=0; i<MAX_OSD_SUPPORT_AREARS; i++) {
+    for(i=0; i<MAX_OSD_SUPPORT_AREARS; i++) {
 			handle = i;	
-            if(i%2==0){
-                j++;
-                stOverlayExAttr.unAttr.stOverlayEx.stSize.u32Width= 290;
-                //stOverlayExAttr.unAttr.stOverlayEx.u32BgColor =  0x8B8B7A;
-                stOverlayExAttr.unAttr.stOverlayEx.u32BgColor =  0x00000000;
-            }else{
-                stOverlayExAttr.unAttr.stOverlayEx.stSize.u32Width= 700;
-                stOverlayExAttr.unAttr.stOverlayEx.u32BgColor =  0x00000000;
-            }
-
-            viChn = j;
+            info_msg("handle = %d", handle);
+            viChn = i;
+#if 1
 			stOverlayExAttr.enType = OVERLAYEX_RGN;
 			stOverlayExAttr.unAttr.stOverlayEx.enPixelFmt = PIXEL_FORMAT_RGB_1555;
-			stOverlayExAttr.unAttr.stOverlayEx.stSize.u32Height = 32;
+            //stOverlayExAttr.unAttr.stOverlayEx.stSize.u32Height = 32;
+            stOverlayExAttr.unAttr.stOverlayEx.stSize.u32Height = 32;
+            stOverlayExAttr.unAttr.stOverlayEx.stSize.u32Width= 500;
+            stOverlayExAttr.unAttr.stOverlayEx.u32BgColor =  0x00000000;
+#else
+            stOverlayExAttr.enType = OVERLAY_RGN ;
+            stOverlayExAttr.unAttr.stOverlay.enPixelFmt = PIXEL_FORMAT_RGB_1555;
+            //stOverlayExAttr.unAttr.stOverlayEx.stSize.u32Height = 32;
+            stOverlayExAttr.unAttr.stOverlay.stSize.u32Height = 400;
+            stOverlayExAttr.unAttr.stOverlay.stSize.u32Width= 700;
+            stOverlayExAttr.unAttr.stOverlay.u32BgColor =  0x00000000;
+#endif
 
 			if((error = HI_MPI_RGN_Create(handle, &stOverlayExAttr))!= HI_SUCCESS) {
-				err_msg("HI_MPI_RGN_Create failed%d\n", error);
+                err_msg("HI_MPI_RGN_Create failed handle = %d 0x%x\n", handle, error);
 				return -1;
 			}
+            info_msg("after HI_MPI_RGN_Create");
 
-			stOverlayExChnAttr.enType = OVERLAYEX_RGN;
-			stOverlayExChnAttr.bShow = HI_TRUE;
-
-            stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32FgAlpha = 255;
+#if 1
+            stOverlayExChnAttr.bShow = HI_TRUE;
+            stOverlayExChnAttr.enType = OVERLAYEX_RGN;
             stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32Layer = 1;
-
-            if(i%2 !=0) {
-                stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32BgAlpha = 0;
-                stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32X = 200;
-                if(status_get_vi_mode() == 2){
-                    stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32Y = 720 - 32;
-                }else{
-                    stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32Y = 576 - 32;
-                }
-            }else {
-                stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32BgAlpha = 180;
-#if 0
-                stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32X = 5;
-                stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32Y = 5;
+            stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32FgAlpha = 255;
+            stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32BgAlpha = 255;
+            stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32X = 1300;
+            stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32Y = 900;
 #else
-                stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32X = 6;
-                stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32Y = 6;
+            stOverlayExChnAttr.bShow = HI_TRUE;
+            stOverlayExChnAttr.enType = OVERLAY_RGN;
+            stOverlayExChnAttr.unChnAttr.stOverlayChn.stPoint.s32X = 800;
+            stOverlayExChnAttr.unChnAttr.stOverlayChn.stPoint.s32Y = 800;
+            stOverlayExChnAttr.unChnAttr.stOverlayChn.u32FgAlpha = 255;
+            stOverlayExChnAttr.unChnAttr.stOverlayChn.u32BgAlpha = 255;
+            stOverlayExChnAttr.unChnAttr.stOverlayChn.u32Layer = 1;
 #endif
-                //stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32BgAlpha = 180;
-            }
+            connect_chn.enModId = HI_ID_VPSS;
+            connect_chn.s32DevId = 1;
+            connect_chn.s32ChnId = 3;
 
-			stOverlayExChn.enModId = HI_ID_VIU;
-			stOverlayExChn.s32DevId = 0;
-			stOverlayExChn.s32ChnId = viChn;
-
-            error = HI_MPI_RGN_AttachToChn(handle, &stOverlayExChn, &stOverlayExChnAttr);
+            error = HI_MPI_RGN_AttachToChn(handle, &connect_chn, &stOverlayExChnAttr);
 			if(HI_SUCCESS != error){
-                err_msg("HI_MPI_RGN_AttachToChn failed with %#x!\n", error);
+                err_msg("HI_MPI_RGN_AttachToChn failed with  %#x! handle = %d\n", error, handle);
 				return -1;
 			}
-
-
+            info_msg("HI_MPI_RGN_AttachToChn");
 	}
 	return 0;
 }
@@ -413,23 +406,21 @@ int draw_osd_1s()
             err_msg("strftime failed\n");
             return -1;
         }
-        int i;
+        int i = 0;
         int osd_interval;
 
-        if(status_get_vi_mode() == STATUS_VI_MODE_NTSC || status_get_vi_mode() == STATUS_VI_MODE_PAL){
             osd_interval = 2;
-        }else if(status_get_vi_mode() == STATUS_VI_MODE_720P){
-            osd_interval = 4;
-        }
 
-        for(i = 0; i < watch_get_actual_use_chn(); i++){
+            osd_draw_text(osd_interval * i, "recording", 2);
+#if 0
+        for(i = 0; i < 4; i++){
             osd_draw_text(osd_interval * i, time_str, MAL_OSD_TEXT_FLAG_TIME);
 
             char osd[VC_OSD_LENGTH] = {0};
-
             status_get_venc_osd(i, osd, sizeof(osd));
             osd_draw_text(osd_interval * i + 1, osd, 2);
         }
+#endif
         return 0;
 }
 

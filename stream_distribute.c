@@ -306,7 +306,7 @@ int start_watch_routine()
             struct timespec current_tp;
             clock_gettime(CLOCK_MONOTONIC, &current_tp);
 
-            if(current_tp.tv_sec - last_sec > 60){
+            if(current_tp.tv_sec - last_sec > 10){
                 last_sec = current_tp.tv_sec;
                 info_msg("switch_new_file");
                 switch_new_file(0, NULL);
@@ -320,10 +320,9 @@ int start_watch_routine()
         }
 
 
-#if MAL_VI_INPUT_VIDEO
+#if 1
         //info_msg("while7 \n");
         draw_osd_1s();
-        vi_loss_detection_1s();
 #endif
 
 #endif

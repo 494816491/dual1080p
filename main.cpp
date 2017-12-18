@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     start_mpi_audio_stream();
 #endif
 
-#if 0
+#if 1
     osd_open();
 #endif
     info_msg("start over");

@@ -14,7 +14,7 @@
 
 #define MAX_VI_SUPPORTS_CHANNELS      8  /* 最大支持的采集通道(路数) */
 
-#define MAX_OSD_SUPPORT_AREARS		 16 /* 最大支持的OSD通道区域*/
+#define MAX_OSD_SUPPORT_AREARS		 1 /* 最大支持的OSD通道区域*/
 
 #define MAX_VENC_SUPPORT_CHANNELS    16   /* 最大支持的编码通道数，主码流+子码流 */
 
@@ -22,7 +22,8 @@
 
 #define VIDEO_LOSS_FILE_PATH   		"/usr/share/loss.yuv"   /* 视频丢失信号的YUV文件 */
 
-#define OSD_FONTS_FILE_PATH			"/usr/share/fonts/DroidSansFallbackFull.ttf" /* OSD需要的字体文件 */
+//#define OSD_FONTS_FILE_PATH			"/usr/share/fonts/DroidSansFallbackFull.ttf" /* OSD需要的字体文件 */
+#define OSD_FONTS_FILE_PATH			"/nfsroot/tmp/font/fontttf.ttf" /* OSD需要的字体文件 */
 
 #define MAL_OSD_TEXT_FLAG_TIME   0x00000001
 

@@ -1093,13 +1093,21 @@ HI_S32 SAMPLE_COMM_VO_StartChn(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
     {
         s32ChnFrmRate = stLayerAttr.u32DispFrmRt;
     }
-    
-    for (i=0; i<u32WndNum; i++)
+
+    //for (i=0; i<u32WndNum; i++)
+    for (i=0; i<2; i++)
     {
+#if 0
         stChnAttr.stRect.s32X       = ALIGN_BACK((u32Width/u32Square) * (i%u32Square), 2);
         stChnAttr.stRect.s32Y       = ALIGN_BACK((u32Height/u32Square) * (i/u32Square), 2);
         stChnAttr.stRect.u32Width   = ALIGN_BACK(u32Width/u32Square, 2);
         stChnAttr.stRect.u32Height  = ALIGN_BACK(u32Height/u32Square, 2);
+#else
+        stChnAttr.stRect.s32X       = i*960;
+        stChnAttr.stRect.s32Y       = 0;
+        stChnAttr.stRect.u32Width   = 960;
+        stChnAttr.stRect.u32Height  = 1080;
+#endif
         stChnAttr.u32Priority       = 0;
         stChnAttr.bDeflicker        = HI_FALSE;
 
@@ -1127,7 +1135,7 @@ HI_S32 SAMPLE_COMM_VO_StartChn(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
     return HI_SUCCESS;
 }
 
-HI_S32 SAMPLE_COMM_VO_StartChn_2(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
+HI_S32 SAMPLE_COMM_VO_StartChn_2(VO_LAYER VoLayer)
 {
     HI_S32 i;
     HI_S32 s32Ret = HI_SUCCESS;
@@ -1139,28 +1147,7 @@ HI_S32 SAMPLE_COMM_VO_StartChn_2(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
     VO_VIDEO_LAYER_ATTR_S stLayerAttr;
     HI_S32 s32ChnFrmRate;
     
-    switch (enMode)
-    {
-        case VO_MODE_1MUX:
-            u32WndNum = 1;
-            u32Square = 1;
-            break;
-        case VO_MODE_4MUX:
-            u32WndNum = 4;
-            u32Square = 2;
-            break;
-        case VO_MODE_9MUX:
-            u32WndNum = 9;
-            u32Square = 3;
-            break;
-        case VO_MODE_16MUX:
-            u32WndNum = 16;
-            u32Square = 4;
-            break;            
-        default:
-            SAMPLE_PRT("failed with %#x!\n", s32Ret);
-            return HI_FAILURE;
-    }
+        u32Square = 2;
 
     s32Ret = HI_MPI_VO_GetVideoLayerAttr(VoLayer, &stLayerAttr);
     if (s32Ret != HI_SUCCESS)
@@ -1168,9 +1155,10 @@ HI_S32 SAMPLE_COMM_VO_StartChn_2(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
         SAMPLE_PRT("failed with %#x!\n", s32Ret);
         return HI_FAILURE;
     }
+
     u32Width = stLayerAttr.stImageSize.u32Width;
     u32Height = stLayerAttr.stImageSize.u32Height;
-    printf("u32Width:%d, u32Square:%d\n", u32Width, u32Square);
+    printf("u32Width:%d, height :%d frame_rate = %d\n", u32Width, u32Height, stLayerAttr.u32DispFrmRt);
 
     if (stLayerAttr.u32DispFrmRt <= 0)
     {
@@ -1184,6 +1172,8 @@ HI_S32 SAMPLE_COMM_VO_StartChn_2(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
     {
         s32ChnFrmRate = stLayerAttr.u32DispFrmRt;
     }
+
+
     
     //for (i=0; i<u32WndNum; i++)
     for (i=0; i<2; i++)
@@ -1191,7 +1181,7 @@ HI_S32 SAMPLE_COMM_VO_StartChn_2(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
         stChnAttr.stRect.s32X       = 960 * i;
         stChnAttr.stRect.s32Y       = 0;
         stChnAttr.stRect.u32Width   = 960;
-        stChnAttr.stRect.u32Height  = 576;
+        stChnAttr.stRect.u32Height  = 1080;
         stChnAttr.u32Priority       = 0;
         stChnAttr.bDeflicker        = HI_FALSE;
 
@@ -2305,12 +2295,11 @@ HI_S32 start_mpi_video_stream(HI_VOID)
 
     VIDEO_NORM_E enNorm = VIDEO_ENCODING_MODE_PAL;
 
-    HI_U32 u32ViChnCnt = 4;
     HI_S32 s32VpssGrpCnt = 4;
     
     VPSS_GRP VpssGrp;
     VPSS_GRP_ATTR_S stGrpAttr;
-    VPSS_CHN VpssChn_VoHD0 = VPSS_CHN2;
+    VPSS_CHN VpssChn_VoHD0 = VPSS_CHN0;
     VO_DEV VoDev;
 	VO_LAYER VoLayer;
     VO_CHN VoChn;
@@ -2378,7 +2367,7 @@ HI_S32 start_mpi_video_stream(HI_VOID)
     VoDev = SAMPLE_VO_DEV_DHD0;
 	VoLayer = SAMPLE_VO_LAYER_VHD0;
     u32WndNum = 8;
-    enVoMode = VO_MODE_9MUX;
+    enVoMode = VO_MODE_4MUX ;
     
     //stVoPubAttr.enIntfSync = VO_OUTPUT_1080P60;
     stVoPubAttr.enIntfSync = VO_OUTPUT_1080P50;
@@ -2415,7 +2404,6 @@ HI_S32 start_mpi_video_stream(HI_VOID)
 	}
 
 
-	//s32Ret = SAMPLE_COMM_VO_StartChn_2(VoLayer, enVoMode);
     s32Ret = SAMPLE_COMM_VO_StartChn(VoLayer, enVoMode);
     if (HI_SUCCESS != s32Ret)
     {
@@ -2456,6 +2444,7 @@ HI_S32 start_mpi_video_stream(HI_VOID)
     }
 #endif
 
+    //-------------------------------------
 #if 1 // ln debug add virtual vo dev
     printf("start vo virtual.\n");
     VoDev = SAMPLE_VO_DEV_VIRT0;
@@ -2466,8 +2455,9 @@ HI_S32 start_mpi_video_stream(HI_VOID)
     //enVoMode = VO_MODE_9MUX  ;
     enVoMode = VO_MODE_4MUX  ;
     
-    stVoPubAttr.enIntfSync = VO_OUTPUT_1080P30;
-	//
+    //stVoPubAttr.enIntfSync = VO_OUTPUT_1080P30;
+    stVoPubAttr.enIntfSync = VO_OUTPUT_1080P25;
+    //
 	stVoPubAttr.enIntfType = VO_INTF_HDMI;
     stVoPubAttr.u32BgColor = 0x000ff00;
 	s32Ret = SAMPLE_COMM_VO_StartDev(VoDev, &stVoPubAttr);
@@ -2478,6 +2468,7 @@ HI_S32 start_mpi_video_stream(HI_VOID)
 	}
 
 	memset(&(stLayerAttr), 0 , sizeof(VO_VIDEO_LAYER_ATTR_S));
+
 	s32Ret = SAMPLE_COMM_VO_GetWH(stVoPubAttr.enIntfSync, \
 		&stLayerAttr.stImageSize.u32Width, \
 		&stLayerAttr.stImageSize.u32Height, \
@@ -2502,12 +2493,28 @@ HI_S32 start_mpi_video_stream(HI_VOID)
 	}
 
     //s32Ret = SAMPLE_COMM_VO_StartChn(VoLayer, enVoMode);
-	s32Ret = SAMPLE_COMM_VO_StartChn_2(VoLayer, enVoMode);
+    s32Ret = SAMPLE_COMM_VO_StartChn_2(VoLayer);
     if (HI_SUCCESS != s32Ret)
     {
         SAMPLE_PRT("Start SAMPLE_COMM_VO_StartChn failed!\n");
         goto END_8X1080P_4;
     }
+#if 0
+    stGrpAttr.u32MaxW = 1920;
+    stGrpAttr.u32MaxH = 1080;
+    stGrpAttr.bNrEn = HI_TRUE;
+    //stGrpAttr.bNrEn = HI_FALSE;
+    stGrpAttr.enDieMode = VPSS_DIE_MODE_NODIE;
+    //stGrpAttr.enDieMode = VPSS_DIE_MODE_AUTO;
+    //stGrpAttr.enDieMode = VPSS_DIE_MODE_DIE;
+    stGrpAttr.enPixFmt = SAMPLE_PIXEL_FORMAT;
+    s32Ret = SAMPLE_COMM_VPSS_Start(s32VpssGrpCnt, &stSize, VPSS_MAX_CHN_NUM,NULL);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Start Vpss failed!\n");
+        goto END_8X1080P_1;
+    }
+#endif
 
 
     for(i=0;i<2;i++)
@@ -2516,9 +2523,11 @@ HI_S32 start_mpi_video_stream(HI_VOID)
         VpssGrp = i;
         
 #if 1 // ln debug
-        //s32Ret = SAMPLE_COMM_VO_BindVpss(VoDev,VoChn,VpssGrp,VPSS_CHN3);
-        //s32Ret = SAMPLE_COMM_VO_BindVi(VoDev,VoChn,i,0);
-        s32Ret = SAMPLE_COMM_VO_BindVi(3,VoChn,i * 4);
+        s32Ret = SAMPLE_COMM_VO_BindVpss(3,VoChn,VpssGrp,VPSS_CHN3);
+#else
+        //s32Ret = SAMPLE_COMM_VO_BindVpss(3, VoChn, i, VPSS_CHN2);
+        //virtual chn
+        s32Ret = SAMPLE_COMM_VO_BindVi(3,VoChn,i * 2);
 #endif
         if (HI_SUCCESS != s32Ret)
         {
