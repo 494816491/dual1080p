@@ -244,7 +244,8 @@ int osd_close()
 	for(i=0; i<MAX_OSD_SUPPORT_AREARS ; i++) {
 		handle = i;
 		stOverlayExChn.s32ChnId = i;
-		HI_MPI_RGN_DetachFrmChn(handle, &stOverlayExChn);
+        HI_MPI_RGN_DetachFromChn(handle, &stOverlayExChn);
+
 		HI_MPI_RGN_Destroy(handle);
 	}
 	return 0;

@@ -20,7 +20,6 @@ SOURCES += \
     sqlite-amalgamation-3210000/sqlite3.c \
     disk_manage.c \
     osd.c \
-    tmp_fun.c \
     text2bitmap.c \
     utils.c \
     utf2unicode.c \
