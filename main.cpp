@@ -1,6 +1,4 @@
-#include <iostream>
-#include <configdata.h>
-#include <QString>
+#include "configdata.h"
 #include "rtmp_h264.h"
 #include "compose.h"
 #include "osd.h"
@@ -22,10 +20,9 @@ int main(int argc, char *argv[])
 
     stream_distri_init();
     start_mpi_video_stream();
-#if 0
+#if 1
     start_mpi_audio_stream();
 #endif
-
 #if 1
     osd_open();
 #endif

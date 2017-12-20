@@ -133,7 +133,7 @@ int stream_distri_init()
 };
 
     //for(i = 0; i < 4; i++){
-    for(i = 1; i < 2; i++){
+    for(i = 0; i < 2; i++){
         struct distri_thread_info_st *thread_info  = thread_infos[i];
         int (*callback)(Mal_StreamBlock *block) = callbacks[i];
         thread_info->callback = callback;
@@ -217,6 +217,7 @@ void translate_venc_stream(int channel,  VENC_STREAM_S *pstStream)
 
 void translate_audio_stream(int channel, AUDIO_STREAM_S *pstStream)
 {
+    //info_msg("translate_audio_stream");
     Mal_StreamBlock block;
     block.chn_num  = channel;
 
@@ -258,9 +259,8 @@ int start_watch_routine()
 
 
     struct rtmp_chn_param_st param = {0};
-    param.audio_enable = 0;
     param.chn_num = 0;
-#if 0
+#if 1
     sprintf(param.ip_addr, "rtmp://192.168.22.2/live/chn0");
 #else
     sprintf(param.ip_addr, "rtmp://ps3.live.panda.tv/live_panda/fdd3dac64c9f2df18898a695b1b2bfa5?sign=1467df8ab3fe03ec2ce4d29049253f12&time=1513438213&wm=2&wml=1&vr=6&extra=0");
@@ -269,6 +269,11 @@ int start_watch_routine()
     param.video_frame_rate = 25;
     param.video_w = 1920;
     param.video_h = 1080;
+#if 1
+    param.audio_enable = 1;
+    param.audio_bit_width = 16;
+    param.audio_sample_rate = 11025;
+#endif
     set_rtmp_chn_param(0, &param);
     open_rtmp_stream(0);
 

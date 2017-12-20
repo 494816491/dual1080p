@@ -558,7 +558,9 @@ int start_mpi_audio_stream()
 
         printf("bind adec:%d to ao(%d,%d) ok \n", AdChn, AoDev, AoChn);
      }
+#if 0
     while(1){}
+#endif
 #if 0
     printf("\nplease press twice ENTER to exit this sample\n");
     getchar();
@@ -639,7 +641,7 @@ int start_mpi_audio_stream()
 
     return HI_SUCCESS;
 }
-
+#if 0
 static HI_S32 SAMPLE_COMM_SYS_Init(VB_CONF_S *pstVbConf)
 {
     MPP_SYS_CONF_S stSysConf = {0};
@@ -695,6 +697,7 @@ static HI_S32 SAMPLE_COMM_SYS_Init(VB_CONF_S *pstVbConf)
 
     return HI_SUCCESS;
 }
+#endif
 
 
 
