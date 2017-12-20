@@ -1,7 +1,5 @@
-QT += core
-QT += gui
-
-CONFIG += c++11
+QT -= core
+QT -= gui
 
 TARGET = dual1080p
 CONFIG += console
@@ -14,8 +12,6 @@ SOURCES += \
     iniparser.c \
     dictionary.c \
     clog.c \
-    main.cpp \
-    configdata.cpp \
     rtmp_h264.c \
     compose.c \
     audio.c \
@@ -27,7 +23,9 @@ SOURCES += \
     tmp_fun.c \
     text2bitmap.c \
     utils.c \
-    utf2unicode.c
+    utf2unicode.c \
+    configdata.c \
+    main.c
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
