@@ -8,7 +8,7 @@
 #include "debug.h"
 int ffmpeg_init()
 {
-    av_log_set_level(56);
+    //av_log_set_level(56);
 
     av_register_all();
     avformat_network_init();

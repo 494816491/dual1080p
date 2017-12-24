@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <string.h>
 #include "debug.h"
 
 #include "disk_manage.h"
@@ -8,9 +9,10 @@
 
 #define SQL_CLAUSE_LEN 1024
 #define MAX_FILE_NAME_LEN 1024
-#define VIDEO_PRE_LEN 12
 #define DISK_NUM 1
 #define STORAGE_INDEX 0
+
+static int VIDEO_PRE_LEN = 0;
 
 
 #define DB_PATH_NAME "/mnt/usb/index.sqlite"
@@ -189,6 +191,12 @@ static int initialize_watch_disks_status()
     char shell_cmd[400];
     int i;
 
+    char db_path_name[100] = DB_PATH_NAME;
+    char *sqlite_index = strstr(db_path_name, "index.sqlite");
+    VIDEO_PRE_LEN = sqlite_index - &db_path_name[0];
+    info_msg("VIDEO_PRE_LEN = %d", VIDEO_PRE_LEN);
+
+
     for(i = 0; i < DISK_NUM; i++){
         //sd card
         memset(shell_cmd, 0, sizeof(shell_cmd));
@@ -201,17 +209,20 @@ static int initialize_watch_disks_status()
             int total_disk;
             memset(&shell_cmd, 0, sizeof(shell_cmd));
             watch_disk_status.storage[i].is_disk_exist  = true;
+            info_msg("disk is exit, %s", VIDEO_SAVE_PATH);
 
             //sprintf(shell_cmd, "df | grep /mnt/sd%d | awk '{print $2}'", i);
             sprintf(shell_cmd,"df | grep '%s'| awk '{print $2}'", VIDEO_SAVE_PATH);
             total_disk = shell_cmd_get_int(shell_cmd);
+            info_msg("total_disk =%d", total_disk);
 
-            watch_disk_status.storage[i].video_capability = total_disk * 9 / 10 * 0.95;
+            watch_disk_status.storage[i].video_capability = total_disk * 0.95;
             watch_disk_status.storage[i].picture_capability = total_disk / 10 * 0.95;
 
             watch_disk_status.storage[i].remain_video_disk = watch_disk_status.storage[i].video_capability * 0.03;
             watch_disk_status.storage[i].remain_pic_disk = watch_disk_status.storage[i].picture_capability * 0.03;
-            info_msg("remain video disk = %d, remain pic disk = %d\n", watch_disk_status.storage[i].remain_video_disk, watch_disk_status.storage[i].remain_pic_disk);
+            //info_msg("remain video disk = %d, remain pic disk = %d\n", watch_disk_status.storage[i].remain_video_disk, watch_disk_status.storage[i].remain_pic_disk);
+            info_msg("remain video disk = %d", watch_disk_status.storage[i].remain_video_disk);
         }else{
             watch_disk_status.storage[i].is_disk_exist  = false;
             watch_disk_status.storage[i].video_capability = 0;

@@ -238,7 +238,6 @@ int rtmp_h264_server_init()
     info_msg("rtmp_h264_server_init");
     int i = 0;
 
-    ffmpeg_init();
     for(i = 0; i < RTMP_H264_CHN_NUM; i++){
         struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[i];
         pthread_mutex_init(&rtmp_h264_data->mutex, NULL);
