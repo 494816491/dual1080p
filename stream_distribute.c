@@ -4,6 +4,7 @@
 #include "sqlite3.h"
 #include "disk_manage.h"
 #include "debug.h"
+#include "configdata.h"
 
 #define MAX_VENC_CHN_SAVE 8
 
@@ -307,35 +308,46 @@ int start_watch_routine()
     struct timespec tp;
     clock_gettime(CLOCK_MONOTONIC, &tp);
     int last_sec = tp.tv_sec;
-
+    int disk_is_full = 0;
     while(1){
 #if 1
         time_slice++;
         if(is_disk_is_exit()){
+            //60秒检查一次磁盘空间,如果需要循环覆盖则删除旧文件，如果不需要循环覆盖就停止写文件
+
 
             if((time_slice % 60) == 0){
                 //删除之前的数据
                 while(should_delete_old_file()){
-                    ret = delete_pre_video_file();
-                    if(ret != 0){
-                        err_msg("rm_pre_file failed\n");
+                    int recoder_mode = status_get_recoder_mode();
+                    if(recoder_mode == RECODER_MODE_CYCLE_VALUE){
+                        sprintf(osd_text, "recoding");
+                        disk_is_full = 0;
+                        ret = delete_pre_video_file();
+                        if(ret != 0){
+                            err_msg("rm_pre_file failed\n");
+                        }
+                    }else if(recoder_mode == RECODER_MODE_SINGLE_VALUE){
+                        info_msg("disk_is_full");
+                        sprintf(osd_text, "disk_is_full");
+                        disk_is_full = 1;
+                        break;
                     }
                 }
             }
 
+            //如果磁盘没有满就需要开启新的文件
             //是否需要切换新的文件
-            struct timespec current_tp;
-            clock_gettime(CLOCK_MONOTONIC, &current_tp);
+            if(!disk_is_full){
 
-            if(current_tp.tv_sec - last_sec > 10){
-                last_sec = current_tp.tv_sec;
-                info_msg("switch_new_file");
-                switch_new_file(0, NULL);
-            }
+                struct timespec current_tp;
+                clock_gettime(CLOCK_MONOTONIC, &current_tp);
 
-            if(current_tp.tv_sec - tp.tv_sec  > 5 ){
-                tp = current_tp;
-
+                if(current_tp.tv_sec - last_sec > 10){
+                    last_sec = current_tp.tv_sec;
+                    info_msg("switch_new_file");
+                    switch_new_file(0, NULL);
+                }
             }
 
         }else{
