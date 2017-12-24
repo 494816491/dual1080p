@@ -28,6 +28,25 @@
 
 #include "debug.h"
 
+static struct audio_info_st{
+    pthread_mutex_t mutex;
+    void (*translate_audio_stream)(int channel,  VENC_STREAM_S *pstStream);
+}audio_info;
+
+static int audio_info_init()
+{
+    pthread_mutex_init(&audio_info.mutex, NULL);
+    audio_info.translate_audio_stream = NULL;
+    return 0;
+}
+
+int audio_hook_translate_audio_stream(void (*translate_audio_stream)(int channel,  VENC_STREAM_S *pstStream))
+{
+    pthread_mutex_lock(&audio_info.mutex);
+    audio_info.translate_audio_stream = translate_audio_stream;
+    pthread_mutex_unlock(&audio_info.mutex);
+    return 0;
+}
 
 static HI_BOOL gs_bUserGetMode = HI_FALSE;
 
@@ -364,7 +383,12 @@ void *SAMPLE_COMM_AUDIO_AencProc(void *parg)
             }
 #endif
 #if 1
-            translate_audio_stream(0, &stStream);
+            // ln debug
+            pthread_mutex_lock(&audio_info.mutex);
+            if(audio_info.translate_audio_stream){
+                audio_info.translate_audio_stream(0, &stStream);
+            }
+            pthread_mutex_unlock(&audio_info.mutex);
 #endif
 #if WRITE_AUDIO_STREAM
             /* save audio stream to file */
@@ -432,7 +456,9 @@ int start_mpi_audio_stream()
     HI_BOOL     bSendAdec = HI_TRUE;
     FILE        *pfd = NULL;
     AIO_ATTR_S stAioAttr;
-
+#if 1
+    audio_info_init();
+#endif
     stAioAttr.enSamplerate   = AUDIO_SAMPLE_RATE_8000;
     stAioAttr.enBitwidth     = AUDIO_BIT_WIDTH_16;
     stAioAttr.enWorkmode     = AIO_MODE_I2S_SLAVE;

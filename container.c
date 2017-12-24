@@ -42,10 +42,6 @@ int container_init(get_ripe_stream_fun callback)
     //2.hook callback fun
     global_param->fun = callback;
 
-    //3.init ffmpeg
-    av_register_all();
-    avformat_network_init();
-
     return 0;
 }
 

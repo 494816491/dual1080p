@@ -414,7 +414,7 @@ int osd_draw_text(int channel, const char* text, unsigned int flags)
 	return error == HI_SUCCESS ? 0 : -1;
 }
 
-int draw_osd_1s()
+int draw_osd_1s(char *text)
 {
     int ret;
         char time_str[40] = {0};
@@ -437,7 +437,7 @@ int draw_osd_1s()
 
             osd_interval = 2;
 
-            osd_draw_text(osd_interval * i, "recording", 2);
+            osd_draw_text(osd_interval * i, text, 2);
 #if 0
         for(i = 0; i < 4; i++){
             osd_draw_text(osd_interval * i, time_str, MAL_OSD_TEXT_FLAG_TIME);

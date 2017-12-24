@@ -7,6 +7,7 @@
 extern "C"{
 #endif
 #define MAX_RTMP_URL_LEN 1000
+
 struct rtmp_chn_param_st{
     int chn_num;
     int video_frame_rate;

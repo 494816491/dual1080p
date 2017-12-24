@@ -12,9 +12,6 @@ extern "C"{
 
 int stream_distri_init();
 
-void translate_venc_stream(int channel,  VENC_STREAM_S *pstStream);
-void translate_audio_stream(int channel, AUDIO_STREAM_S *pstStream);
-
 int start_watch_routine();
 #ifdef __cplusplus
 }

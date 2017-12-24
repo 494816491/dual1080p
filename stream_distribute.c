@@ -179,8 +179,9 @@ static int distribute_stream(struct stream_cond_st *stream_cond, Mal_StreamBlock
     return 0;
 }
 
-void translate_venc_stream(int channel,  VENC_STREAM_S *pstStream)
+static void translate_venc_stream(int channel,  VENC_STREAM_S *pstStream)
 {
+    //info_msg("before translate_venc_stream");
     int i=0;
     Mal_StreamBlock block;
     //info_msg("block.chn_num = %d\n", channel);
@@ -213,9 +214,10 @@ void translate_venc_stream(int channel,  VENC_STREAM_S *pstStream)
 
         free(block.p_buffer);
     }
+    //info_msg("after translate_venc_stream");
 }
 
-void translate_audio_stream(int channel, AUDIO_STREAM_S *pstStream)
+static void translate_audio_stream(int channel, AUDIO_STREAM_S *pstStream)
 {
     //info_msg("translate_audio_stream");
     Mal_StreamBlock block;
@@ -256,32 +258,48 @@ int start_watch_routine()
 {
     int i;
     int ret;
+    char osd_text[500] = {0};
+    disk_manage_init();
 
-
-    struct rtmp_chn_param_st param = {0};
-    param.chn_num = 0;
+    //磁盘存在与否进行不同的初始化
+    if(is_disk_is_exit()){
+        //各个模块的功能初始化
+        //初始化ini文件
+        status_read_ini_file();
+        //初始化rtmp
+        struct rtmp_chn_param_st param = {0};
+        param.chn_num = 0;
 #if 1
-    sprintf(param.ip_addr, "rtmp://192.168.22.2/live/chn0");
+        //sprintf(, "rtmp://192.168.22.2/live/chn0");
+        status_get_rtmp_addr(param.ip_addr);
 #else
-    sprintf(param.ip_addr, "rtmp://ps3.live.panda.tv/live_panda/fdd3dac64c9f2df18898a695b1b2bfa5?sign=1467df8ab3fe03ec2ce4d29049253f12&time=1513438213&wm=2&wml=1&vr=6&extra=0");
+        sprintf(param.ip_addr, "rtmp://ps3.live.panda.tv/live_panda/fdd3dac64c9f2df18898a695b1b2bfa5?sign=1467df8ab3fe03ec2ce4d29049253f12&time=1513438213&wm=2&wml=1&vr=6&extra=0");
 #endif
-
-    param.video_frame_rate = 25;
-    param.video_w = 1920;
-    param.video_h = 1080;
+        param.video_frame_rate = 25;
+        param.video_w = 1920;
+        param.video_h = 1080;
 #if 1
-    param.audio_enable = 1;
-    param.audio_bit_width = 16;
-    param.audio_sample_rate = 11025;
+        param.audio_enable = 1;
+        param.audio_bit_width = 16;
+        param.audio_sample_rate = 11025;
 #endif
-    set_rtmp_chn_param(0, &param);
-    open_rtmp_stream(0);
+        set_rtmp_chn_param(0, &param);
+        open_rtmp_stream(0);
 
+        compose_hook_translate_venc_stream(translate_venc_stream);
+        audio_hook_translate_audio_stream(translate_audio_stream);
+        //配置disk file
+        for(i = 0; i < 1; i++){
+            struct container_param_s param = {0};
+            watch_get_container_save_param(i, &param);
+            set_container_param(i, &param);
+        }
+        stream_distri_init();
 
-    for(i = 0; i < 1; i++){
-        struct container_param_s param = {0};
-        watch_get_container_save_param(i, &param);
-        set_container_param(i, &param);
+        //container_start_new_file("/mnt/usb/test.mkv", 0);
+    }else{
+
+        sprintf(osd_text, "no_disk");
     }
 
     //开始时钟
@@ -290,14 +308,12 @@ int start_watch_routine()
     clock_gettime(CLOCK_MONOTONIC, &tp);
     int last_sec = tp.tv_sec;
 
-    disk_manage_init();
-    container_start_new_file("/mnt/usb/test.mkv", 0);
-
     while(1){
 #if 1
         time_slice++;
         if(is_disk_is_exit()){
-            if((time_slice % 60) == 59){
+
+            if((time_slice % 60) == 0){
                 //删除之前的数据
                 while(should_delete_old_file()){
                     ret = delete_pre_video_file();
@@ -316,20 +332,19 @@ int start_watch_routine()
                 info_msg("switch_new_file");
                 switch_new_file(0, NULL);
             }
+
             if(current_tp.tv_sec - tp.tv_sec  > 5 ){
                 tp = current_tp;
 
             }
+
         }else{
             info_msg("disk is not exist");
         }
-
-
 #if 1
         //info_msg("while7 \n");
-        draw_osd_1s();
+        draw_osd_1s(osd_text);
 #endif
-
 #endif
         //修正时间，防止时间跨越
         struct timespec current_tp;

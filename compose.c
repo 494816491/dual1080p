@@ -21,6 +21,7 @@ extern "C"{
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <pthread.h>
 
 #include <sys/sem.h>
 
@@ -40,6 +41,25 @@ extern "C"{
 #include "mpi_hdmi.h"
 #include "debug.h"
 
+static struct compose_info_st{
+    pthread_mutex_t mutex;
+    void (*translate_venc_stream)(int channel,  VENC_STREAM_S *pstStream);
+}compose_info;
+
+static int compose_info_init()
+{
+    pthread_mutex_init(&compose_info.mutex, NULL);
+    compose_info.translate_venc_stream = NULL;
+    return 0;
+}
+
+int compose_hook_translate_venc_stream(void (*translate_venc_stream)(int channel,  VENC_STREAM_S *pstStream))
+{
+    pthread_mutex_lock(&compose_info.mutex);
+    compose_info.translate_venc_stream = translate_venc_stream;
+    pthread_mutex_unlock(&compose_info.mutex);
+    return 0;
+}
 
 
 #define HDMI_SUPPORT
@@ -2207,7 +2227,11 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                     }
 #if 1
 					// ln debug
-					translate_venc_stream(i,  &stStream);
+                    pthread_mutex_lock(&compose_info.mutex);
+                    if(compose_info.translate_venc_stream){
+                       compose_info.translate_venc_stream(i,  &stStream);
+                    }
+                    pthread_mutex_unlock(&compose_info.mutex);
 #endif
 					
 
@@ -2289,6 +2313,8 @@ int hisi_video_mem_init()
 /******************************************************************************
 * function : VI(D1: 8 windows) -> VPSS -> HD0(1080P@60) -> WBC -> SD0(D1)
 ******************************************************************************/
+
+
 HI_S32 start_mpi_video_stream(HI_VOID)
 {
    	SAMPLE_VI_MODE_E enViMode = SAMPLE_VI_MODE_8_1080P;
@@ -2314,6 +2340,7 @@ HI_S32 start_mpi_video_stream(HI_VOID)
     HI_U32 u32WndNum;
 
 
+    compose_info_init();
     /******************************************
      step 3: start vi dev & chn
     ******************************************/

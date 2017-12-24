@@ -194,6 +194,7 @@ int open_rtmp_stream(int chn)
     struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[chn];
     pthread_mutex_lock(&rtmp_h264_data->mutex);
 
+
     ret = avformat_alloc_output_context2(&rtmp_h264_data->out_context, NULL, "flv", rtmp_h264_data->rtmp_ip);
     if(ret < 0){
         err_msg("avformat_alloc_output_context2 failed,%s\n", av_err2str(ret));
@@ -238,10 +239,6 @@ int rtmp_h264_server_init()
 {
     info_msg("rtmp_h264_server_init");
     int i = 0;
-    av_log_set_level(56);
-
-    av_register_all();
-    avformat_network_init();
     for(i = 0; i < RTMP_H264_CHN_NUM; i++){
         struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[i];
         pthread_mutex_init(&rtmp_h264_data->mutex, NULL);
@@ -254,6 +251,7 @@ int send_rtmp_video_stream(Mal_StreamBlock *block)
 {
     struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[block->chn_num];
 
+    //info_msg("before send_rtmp_video_stream");
     //judge is context is ok
     pthread_mutex_lock(&rtmp_h264_data->mutex);
     if(!rtmp_h264_data->out_context || !rtmp_h264_data->video_stream){
@@ -261,6 +259,7 @@ int send_rtmp_video_stream(Mal_StreamBlock *block)
         return 0;
     }
     pthread_mutex_unlock(&rtmp_h264_data->mutex);
+    //info_msg("after send_rtmp_video_stream");
 
     char *packet_buff = NULL;
     int packet_size = 0;
@@ -554,7 +553,7 @@ static int resample_main(char *g711a_data, int g711a_data_size, char **ret_buf, 
     /* compute destination number of samples */
     info->dst_nb_samples = av_rescale_rnd(swr_get_delay(info->swr_ctx, info->src_rate) +
                                           info->src_nb_samples, info->dst_rate, info->src_rate, AV_ROUND_UP);
-    printf("swr_get_delay = %d\n", swr_get_delay(info->swr_ctx, info->src_rate));
+    //printf("swr_get_delay = %d\n", swr_get_delay(info->swr_ctx, info->src_rate));
 
     if (info->dst_nb_samples > info->max_dst_nb_samples) {
         av_freep(&info->dst_data[0]);
