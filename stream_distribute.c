@@ -297,8 +297,8 @@ int start_watch_routine()
         stream_distri_init();
 
         //container_start_new_file("/mnt/usb/test.mkv", 0);
+        switch_new_file(0, NULL);
     }else{
-
         sprintf(osd_text, "no_disk");
     }
 

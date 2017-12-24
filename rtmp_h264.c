@@ -78,9 +78,6 @@ static int add_video_stream(struct rtmp_h264_st *rtmp_h264_data)
     codec_context->codec_id = AV_CODEC_ID_H264;
     codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
 
-    codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
-    codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
-
     //must set width and height
     codec_context->width = rtmp_h264_data->video_size.u32Width;
     codec_context->height = rtmp_h264_data->video_size.u32Height;
@@ -135,7 +132,8 @@ static int add_audio_stream(struct rtmp_h264_st *rtmp_h264_data)
     codec_context->sample_rate = rtmp_h264_data->audio_sample_rate;
     codec_context->channels = 1;
     //codec_context->sample_fmt = AV_SAMPLE_FMT_S16;
-    codec_context->bits_per_coded_sample = 8;
+    //codec_context->bits_per_coded_sample = 8;
+    codec_context->bits_per_coded_sample = 16;
     //codec_context->bit_rate = 64000;
     codec_context->frame_size = 320;
     codec_context->time_base.den = 25;
@@ -239,6 +237,8 @@ int rtmp_h264_server_init()
 {
     info_msg("rtmp_h264_server_init");
     int i = 0;
+
+    ffmpeg_init();
     for(i = 0; i < RTMP_H264_CHN_NUM; i++){
         struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[i];
         pthread_mutex_init(&rtmp_h264_data->mutex, NULL);
@@ -270,10 +270,9 @@ int send_rtmp_video_stream(Mal_StreamBlock *block)
     packet_buff = (char *)block->p_buffer;
     packet_size = block->i_buffer;
 
-    hi_pts_avrational.den = 1000000;
+    //hi_pts_avrational.den = 1000000;
+    hi_pts_avrational.den = 1000;
     hi_pts_avrational.num = 1;
-
-
 
 #if 1
     int should_release_i_frame  = 0;
@@ -300,7 +299,6 @@ int send_rtmp_video_stream(Mal_StreamBlock *block)
         should_release_i_frame  = 1;
     }
 #endif
-
 
     av_init_packet(&pkt);
     pkt.data = (unsigned char *)packet_buff;
@@ -358,7 +356,8 @@ int send_rtmp_audio_stream( Mal_StreamBlock *block)
     AVRational hi_pts_avrational;
     int ret;
 
-    hi_pts_avrational.den = 1000000;
+    //hi_pts_avrational.den = 1000000;
+    hi_pts_avrational.den = 1000;
     hi_pts_avrational.num = 1;
 
     av_init_packet(&pkt);
