@@ -181,7 +181,7 @@ int osd_open()
             stOverlayExChnAttr.enType = OVERLAYEX_RGN;
             stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32Layer = 1;
             stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32FgAlpha = 255;
-            stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32BgAlpha = 255;
+            stOverlayExChnAttr.unChnAttr.stOverlayExChn.u32BgAlpha = 188;
             stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32X = 1300;
             stOverlayExChnAttr.unChnAttr.stOverlayExChn.stPoint.s32Y = 900;
 #else
@@ -437,6 +437,7 @@ int draw_osd_1s(char *text)
 
             osd_interval = 2;
 
+            //info_msg("osd text %s",text);
             osd_draw_text(osd_interval * i, text, 2);
 #if 0
         for(i = 0; i < 4; i++){

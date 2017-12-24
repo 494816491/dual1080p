@@ -299,6 +299,11 @@ int start_watch_routine()
 
         //container_start_new_file("/mnt/usb/test.mkv", 0);
         switch_new_file(0, NULL);
+        if(should_delete_old_file()){
+            sprintf(osd_text, "disk_is_full");
+        }else{
+            sprintf(osd_text, "recoding");
+        }
     }else{
         sprintf(osd_text, "no_disk");
     }
