@@ -63,7 +63,7 @@ int compose_hook_translate_venc_stream(void (*translate_venc_stream)(int channel
 
 
 #define HDMI_SUPPORT
-#define SAMPLE_SYS_ALIGN_WIDTH  16		
+#define SAMPLE_SYS_ALIGN_WIDTH  16
 
 typedef enum sample_rc_e
 {
@@ -78,7 +78,7 @@ typedef enum sample_vi_mode_e
     SAMPLE_VI_MODE_16_960H,
     SAMPLE_VI_MODE_16_1280H,
     SAMPLE_VI_MODE_16_HALF720P,
-    
+
     SAMPLE_VI_MODE_8_720P,
     SAMPLE_VI_MODE_16_720P,
 
@@ -91,8 +91,8 @@ typedef enum sample_vi_mode_e
 
 typedef enum sample_vi_chn_set_e
 {
-    VI_CHN_SET_NORMAL = 0, /* mirror, filp close */ 
-    VI_CHN_SET_MIRROR,      /* open MIRROR */   
+    VI_CHN_SET_NORMAL = 0, /* mirror, filp close */
+    VI_CHN_SET_MIRROR,      /* open MIRROR */
     VI_CHN_SET_FILP        /* open filp */
 }SAMPLE_VI_CHN_SET_E;
 
@@ -101,9 +101,9 @@ typedef enum sample_vi_chn_set_e
 
 typedef struct sample_vi_param_s
 {
-    HI_S32 s32ViDevCnt;        // VI Dev Total Count    
-    HI_S32 s32ViDevInterval;   // Vi Dev Interval    
-    HI_S32 s32ViChnCnt;        // Vi Chn Total Count    
+    HI_S32 s32ViDevCnt;        // VI Dev Total Count
+    HI_S32 s32ViDevInterval;   // Vi Dev Interval
+    HI_S32 s32ViChnCnt;        // Vi Chn Total Count
     HI_S32 s32ViChnInterval;   // VI Chn Interval
 }SAMPLE_VI_PARAM_S;
 
@@ -113,7 +113,7 @@ typedef enum sample_vo_mode_e
     VO_MODE_1MUX  = 0,
     VO_MODE_4MUX = 1,
     VO_MODE_9MUX = 2,
-    VO_MODE_16MUX = 3,    
+    VO_MODE_16MUX = 3,
     VO_MODE_BUTT
 }SAMPLE_VO_MODE_E;
 
@@ -133,7 +133,7 @@ typedef enum sample_vo_mode_e
 typedef struct hiHDMI_CALLBACK_ARGS_S
 {
     HI_HDMI_ID_E		enHdmi;
-	HI_HDMI_VIDEO_FMT_E eForceFmt;
+    HI_HDMI_VIDEO_FMT_E eForceFmt;
 }HDMI_CALLBACK_ARGS_S;
 
 #define SAMPLE_PRT(fmt...)   \
@@ -173,7 +173,7 @@ HI_S32 SAMPLE_COMM_SYS_GetPicSize(VIDEO_NORM_E enNorm, PIC_SIZE_E enPicSize, SIZ
         case PIC_960H:
             pstSize->u32Width = 960;
             pstSize->u32Height = (VIDEO_ENCODING_MODE_PAL==enNorm)?576:480;
-            break;			
+            break;
         case PIC_2CIF:
             pstSize->u32Width = D1_WIDTH / 2;
             pstSize->u32Height = (VIDEO_ENCODING_MODE_PAL==enNorm)?576:480;
@@ -244,7 +244,7 @@ HI_U32 SAMPLE_COMM_SYS_CalcPicVbBlkSize(VIDEO_NORM_E enNorm, PIC_SIZE_E enPicSiz
     HI_U32 u32Width 		= 0;
     HI_U32 u32Height 		= 0;
     HI_U32 u32BlkSize 		= 0;
-	HI_U32 u32HeaderSize 	= 0;
+    HI_U32 u32HeaderSize 	= 0;
 
     s32Ret = SAMPLE_COMM_SYS_GetPicSize(enNorm, enPicSize, &stSize);
     if (HI_SUCCESS != s32Ret)
@@ -268,12 +268,12 @@ HI_U32 SAMPLE_COMM_SYS_CalcPicVbBlkSize(VIDEO_NORM_E enNorm, PIC_SIZE_E enPicSiz
     if (704 == stSize.u32Width)
     {
         stSize.u32Width = 720;
-    }    
+    }
     //SAMPLE_PRT("w:%d, u32AlignWidth:%d\n", CEILING_2_POWER(stSize.u32Width,u32AlignWidth), u32AlignWidth);
 
     u32Width  = CEILING_2_POWER(stSize.u32Width, u32AlignWidth);
     u32Height = CEILING_2_POWER(stSize.u32Height,u32AlignWidth);
-    
+
     if (PIXEL_FORMAT_YUV_SEMIPLANAR_422 == enPixFmt)
     {
         u32BlkSize = u32Width * u32Height * 2;
@@ -284,13 +284,13 @@ HI_U32 SAMPLE_COMM_SYS_CalcPicVbBlkSize(VIDEO_NORM_E enNorm, PIC_SIZE_E enPicSiz
     }
 
 
-	if(COMPRESS_MODE_SEG == enCompFmt)
-	{
-		VB_PIC_HEADER_SIZE(u32Width,u32Height,enPixFmt,u32HeaderSize);
-	}
+    if(COMPRESS_MODE_SEG == enCompFmt)
+    {
+        VB_PIC_HEADER_SIZE(u32Width,u32Height,enPixFmt,u32HeaderSize);
+    }
 
-	u32BlkSize += u32HeaderSize;
-	
+    u32BlkSize += u32HeaderSize;
+
     return u32BlkSize;
 }
 
@@ -304,7 +304,7 @@ HI_S32 SAMPLE_COMM_SYS_Init(VB_CONF_S *pstVbConf)
     HI_S32 i;
 
     HI_MPI_SYS_Exit();
-    
+
     for(i=0;i<VB_MAX_USER;i++)
     {
          HI_MPI_VB_ExitModCommPool(i);
@@ -356,7 +356,7 @@ HI_S32 SAMPLE_COMM_SYS_Init(VB_CONF_S *pstVbConf)
 /*****************************************************************************
 * function : star vi chn
 *****************************************************************************/
-HI_S32 SAMPLE_COMM_VI_StartChn(VI_CHN ViChn, RECT_S *pstCapRect, SIZE_S *pstTarSize, 
+HI_S32 SAMPLE_COMM_VI_StartChn(VI_CHN ViChn, RECT_S *pstCapRect, SIZE_S *pstTarSize,
     SAMPLE_VI_MODE_E enViMode, SAMPLE_VI_CHN_SET_E enViChnSet)
 {
     HI_S32 s32Ret;
@@ -401,7 +401,7 @@ HI_S32 SAMPLE_COMM_VI_StartChn(VI_CHN ViChn, RECT_S *pstCapRect, SIZE_S *pstTarS
         SAMPLE_PRT("failed with %#x!\n", s32Ret);
         return HI_FAILURE;
     }
-    
+
     s32Ret = HI_MPI_VI_EnableChn(ViChn);
     if (s32Ret != HI_SUCCESS)
     {
@@ -478,14 +478,14 @@ HI_S32 SAMPLE_COMM_VI_Mode2Size(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm, 
             pstCapRect->u32Width  = _720P_WIDTH;
             pstCapRect->u32Height = _720P_HEIGHT;
             break;
-            
-     case SAMPLE_VI_MODE_8_1080P:       
+
+     case SAMPLE_VI_MODE_8_1080P:
             pstDestSize->u32Width  = HD_WIDTH;
             pstDestSize->u32Height = HD_HEIGHT;
             pstCapRect->u32Width  = HD_WIDTH;
             pstCapRect->u32Height = HD_HEIGHT;
             break;
-     case SAMPLE_VI_MODE_4_1080P:       
+     case SAMPLE_VI_MODE_4_1080P:
             pstDestSize->u32Width  = HD_WIDTH;
             pstDestSize->u32Height = HD_HEIGHT;
             pstCapRect->u32Width  = HD_WIDTH;
@@ -496,7 +496,7 @@ HI_S32 SAMPLE_COMM_VI_Mode2Size(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm, 
             SAMPLE_PRT("vi mode invaild!\n");
             return HI_FAILURE;
     }
-    
+
     return HI_SUCCESS;
 }
 
@@ -509,9 +509,9 @@ VI_DEV_ATTR_S DEV_ATTR_BT656D1_4MUX =
     /* r_mask    g_mask    b_mask*/
     {0xFF000000,    0x0},
 
-	/* for single/double edge, must be set when double edge*/
-	VI_CLK_EDGE_SINGLE_UP,
-	
+    /* for single/double edge, must be set when double edge*/
+    VI_CLK_EDGE_SINGLE_UP,
+
     /*AdChnId*/
     {-1, -1, -1, -1},
     /*enDataSeq, just support YUV*/
@@ -545,9 +545,9 @@ VI_DEV_ATTR_S DEV_ATTR_6114_720P_2MUX_BASE =
     {0xFF000000,    0x0},
     //{0x0,    0x0},
 
-	/* for single/double edge, must be set when double edge*/
-	VI_CLK_EDGE_SINGLE_UP,
-	
+    /* for single/double edge, must be set when double edge*/
+    VI_CLK_EDGE_SINGLE_UP,
+
     /*AdChnId*/
     {-1, -1, -1, -1},
     /*enDataSeq, just support YUV*/
@@ -725,7 +725,7 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
     SIZE_S stTargetSize;
     RECT_S stCapRect;
     VI_CHN_BIND_ATTR_S stChnBindAttr;
-    
+
     /*** get parameter from Sample_Vi_Mode ***/
     s32Ret = SAMPLE_COMM_VI_Mode2Param(enViMode, &stViParam);
     if (HI_SUCCESS !=s32Ret)
@@ -739,7 +739,7 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
         SAMPLE_PRT("vi get size failed!\n");
         return HI_FAILURE;
     }
-    
+
     /*** Start AD ***/
 #if 0
     s32Ret = SAMPLE_COMM_VI_ADStart(enViMode, enNorm);
@@ -749,7 +749,7 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
         return HI_FAILURE;
     }
 #endif
-    
+
     /*** Start VI Dev ***/
     for(i=0; i<stViParam.s32ViDevCnt; i++)
     {
@@ -762,7 +762,7 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
         }
         //HI_MPI_VI_DisableDllSlave(ViDev);
     }
-    
+
     /*** Start VI Chn ***/
     for(i=0; i<stViParam.s32ViChnCnt; i++)
     {
@@ -785,8 +785,8 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
                     {
                         SAMPLE_PRT("call HI_MPI_VI_BindChn failed with %#x\n", s32Ret);
                         return HI_FAILURE;
-                    } 
-                } 
+                    }
+                }
             }
 #endif
         }
@@ -796,7 +796,7 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
         {
             SAMPLE_PRT("call SAMPLE_COMM_VI_StarChn failed with %#x\n", s32Ret);
             return HI_FAILURE;
-        } 
+        }
     }
 
     return HI_SUCCESS;
@@ -823,7 +823,7 @@ HI_S32 SAMPLE_COMM_VPSS_Start(HI_S32 s32GrpCnt, SIZE_S *pstSize, HI_S32 s32ChnCn
         stGrpAttr.u32MaxW = pstSize->u32Width;
         stGrpAttr.u32MaxH = pstSize->u32Height;
         stGrpAttr.enPixFmt = SAMPLE_PIXEL_FORMAT;
-        
+
         stGrpAttr.bIeEn = HI_FALSE;
         stGrpAttr.bNrEn = HI_TRUE;
         stGrpAttr.bDciEn = HI_FALSE;
@@ -835,7 +835,7 @@ HI_S32 SAMPLE_COMM_VPSS_Start(HI_S32 s32GrpCnt, SIZE_S *pstSize, HI_S32 s32ChnCn
     {
         memcpy(&stGrpAttr,pstVpssGrpAttr,sizeof(VPSS_GRP_ATTR_S));
     }
-    
+
 
     for(i=0; i<s32GrpCnt; i++)
     {
@@ -855,7 +855,7 @@ HI_S32 SAMPLE_COMM_VPSS_Start(HI_S32 s32GrpCnt, SIZE_S *pstSize, HI_S32 s32ChnCn
             SAMPLE_PRT("failed with %#x!\n", s32Ret);
             return HI_FAILURE;
         }
-        
+
         stVpssParam.u32IeStrength = 0;
         s32Ret = HI_MPI_VPSS_SetGrpParam(VpssGrp, &stVpssParam);
         if (s32Ret != HI_SUCCESS)
@@ -877,7 +877,7 @@ HI_S32 SAMPLE_COMM_VPSS_Start(HI_S32 s32GrpCnt, SIZE_S *pstSize, HI_S32 s32ChnCn
             stChnAttr.stBorder.u32RightWidth = 2;
             stChnAttr.stBorder.u32TopWidth = 2;
             stChnAttr.stBorder.u32BottomWidth = 2;
-            
+
             s32Ret = HI_MPI_VPSS_SetChnAttr(VpssGrp, VpssChn, &stChnAttr);
             if (s32Ret != HI_SUCCESS)
             {
@@ -905,7 +905,7 @@ HI_S32 SAMPLE_COMM_VPSS_Start(HI_S32 s32GrpCnt, SIZE_S *pstSize, HI_S32 s32ChnCn
                 SAMPLE_PRT("HI_MPI_VPSS_SetChnMode failed with %#x\n", s32Ret);
                 return HI_FAILURE;
             }
-    
+
             s32Ret = HI_MPI_VPSS_EnableChn(VpssGrp, VpssChn);
             if (s32Ret != HI_SUCCESS)
             {
@@ -913,7 +913,7 @@ HI_S32 SAMPLE_COMM_VPSS_Start(HI_S32 s32GrpCnt, SIZE_S *pstSize, HI_S32 s32ChnCn
                 return HI_FAILURE;
             }
         }
-        
+
         /*** start vpss group ***/
         s32Ret = HI_MPI_VPSS_StartGrp(VpssGrp);
         if (s32Ret != HI_SUCCESS)
@@ -944,27 +944,27 @@ HI_S32 SAMPLE_COMM_VI_BindVpss(SAMPLE_VI_MODE_E enViMode)
         SAMPLE_PRT("SAMPLE_COMM_VI_Mode2Param failed!\n");
         return HI_FAILURE;
     }
-    
+
     VpssGrp = 0;
     for (j=0; j<stViParam.s32ViChnCnt; j++)
     {
         ViChn = j * stViParam.s32ViChnInterval;
-        
+
         stSrcChn.enModId = HI_ID_VIU;
         stSrcChn.s32DevId = 0;
         stSrcChn.s32ChnId = ViChn;
-    
+
         stDestChn.enModId = HI_ID_VPSS;
         stDestChn.s32DevId = VpssGrp;
         stDestChn.s32ChnId = 0;
-    
+
         s32Ret = HI_MPI_SYS_Bind(&stSrcChn, &stDestChn);
         if (s32Ret != HI_SUCCESS)
         {
             SAMPLE_PRT("failed with %#x!\n", s32Ret);
             return HI_FAILURE;
         }
-        
+
         VpssGrp ++;
     }
     return HI_SUCCESS;
@@ -973,7 +973,7 @@ HI_S32 SAMPLE_COMM_VI_BindVpss(SAMPLE_VI_MODE_E enViMode)
 HI_S32 SAMPLE_COMM_VO_StartDev(VO_DEV VoDev, VO_PUB_ATTR_S *pstPubAttr)
 {
     HI_S32 s32Ret = HI_SUCCESS;
-    
+
     s32Ret = HI_MPI_VO_SetPubAttr(VoDev, pstPubAttr);
     if (s32Ret != HI_SUCCESS)
     {
@@ -987,7 +987,7 @@ HI_S32 SAMPLE_COMM_VO_StartDev(VO_DEV VoDev, VO_PUB_ATTR_S *pstPubAttr)
         SAMPLE_PRT("failed with %#x!\n", s32Ret);
         return HI_FAILURE;
     }
-    
+
     return s32Ret;
 }
 
@@ -996,15 +996,15 @@ HI_S32 SAMPLE_COMM_VO_GetWH(VO_INTF_SYNC_E enIntfSync, HI_U32 *pu32W,HI_U32 *pu3
     switch (enIntfSync)
     {
         case VO_OUTPUT_PAL       :  *pu32W = 720;  *pu32H = 576;  *pu32Frm = 25; break;
-        case VO_OUTPUT_NTSC      :  *pu32W = 720;  *pu32H = 480;  *pu32Frm = 30; break;        
+        case VO_OUTPUT_NTSC      :  *pu32W = 720;  *pu32H = 480;  *pu32Frm = 30; break;
         case VO_OUTPUT_576P50    :  *pu32W = 720;  *pu32H = 576;  *pu32Frm = 50; break;
         case VO_OUTPUT_480P60    :  *pu32W = 720;  *pu32H = 480;  *pu32Frm = 60; break;
         case VO_OUTPUT_800x600_60:  *pu32W = 800;  *pu32H = 600;  *pu32Frm = 60; break;
         case VO_OUTPUT_720P50    :  *pu32W = 1280; *pu32H = 720;  *pu32Frm = 50; break;
-        case VO_OUTPUT_720P60    :  *pu32W = 1280; *pu32H = 720;  *pu32Frm = 60; break;        
+        case VO_OUTPUT_720P60    :  *pu32W = 1280; *pu32H = 720;  *pu32Frm = 60; break;
         case VO_OUTPUT_1080I50   :  *pu32W = 1920; *pu32H = 1080; *pu32Frm = 50; break;
         case VO_OUTPUT_1080I60   :  *pu32W = 1920; *pu32H = 1080; *pu32Frm = 60; break;
-        case VO_OUTPUT_1080P24   :  *pu32W = 1920; *pu32H = 1080; *pu32Frm = 24; break;        
+        case VO_OUTPUT_1080P24   :  *pu32W = 1920; *pu32H = 1080; *pu32Frm = 24; break;
         case VO_OUTPUT_1080P25   :  *pu32W = 1920; *pu32H = 1080; *pu32Frm = 25; break;
         case VO_OUTPUT_1080P30   :  *pu32W = 1920; *pu32H = 1080; *pu32Frm = 30; break;
         case VO_OUTPUT_1080P50   :  *pu32W = 1920; *pu32H = 1080; *pu32Frm = 50; break;
@@ -1013,14 +1013,14 @@ HI_S32 SAMPLE_COMM_VO_GetWH(VO_INTF_SYNC_E enIntfSync, HI_U32 *pu32W,HI_U32 *pu3
         case VO_OUTPUT_1280x1024_60: *pu32W = 1280; *pu32H = 1024; *pu32Frm = 60; break;
         case VO_OUTPUT_1366x768_60:  *pu32W = 1366; *pu32H = 768;  *pu32Frm = 60; break;
         case VO_OUTPUT_1440x900_60:  *pu32W = 1440; *pu32H = 900;  *pu32Frm = 60; break;
-        case VO_OUTPUT_1280x800_60:  *pu32W = 1280; *pu32H = 800;  *pu32Frm = 60; break;        
+        case VO_OUTPUT_1280x800_60:  *pu32W = 1280; *pu32H = 800;  *pu32Frm = 60; break;
         case VO_OUTPUT_1600x1200_60: *pu32W = 1600; *pu32H = 1200; *pu32Frm = 60; break;
         case VO_OUTPUT_1680x1050_60: *pu32W = 1680; *pu32H = 1050; *pu32Frm = 60; break;
         case VO_OUTPUT_1920x1200_60: *pu32W = 1920; *pu32H = 1200; *pu32Frm = 60; break;
         case VO_OUTPUT_3840x2160_30: *pu32W = 3840; *pu32H = 2160; *pu32Frm = 30; break;
         case VO_OUTPUT_3840x2160_60: *pu32W = 3840; *pu32H = 2160; *pu32Frm = 60; break;
         case VO_OUTPUT_USER    :     *pu32W = 720;  *pu32H = 576;  *pu32Frm = 25; break;
-        default: 
+        default:
             SAMPLE_PRT("vo enIntfSync not support!\n");
             return HI_FAILURE;
     }
@@ -1037,7 +1037,7 @@ HI_S32 SAMPLE_COMM_VO_StartLayer(VO_LAYER VoLayer,const VO_VIDEO_LAYER_ATTR_S *p
         return HI_FAILURE;
     }
 #if 0 // ln debug
-	s32Ret = HI_MPI_VO_SetVideoLayerPartitionMode(VoLayer,VO_PART_MODE_SINGLE);
+    s32Ret = HI_MPI_VO_SetVideoLayerPartitionMode(VoLayer,VO_PART_MODE_SINGLE);
 
     if (s32Ret != HI_SUCCESS)
     {
@@ -1052,7 +1052,7 @@ HI_S32 SAMPLE_COMM_VO_StartLayer(VO_LAYER VoLayer,const VO_VIDEO_LAYER_ATTR_S *p
         SAMPLE_PRT("failed with %#x!\n", s32Ret);
         return HI_FAILURE;
     }
-    
+
     return s32Ret;
 }
 
@@ -1067,7 +1067,7 @@ HI_S32 SAMPLE_COMM_VO_StartChn(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
     VO_CHN_ATTR_S stChnAttr;
     VO_VIDEO_LAYER_ATTR_S stLayerAttr;
     HI_S32 s32ChnFrmRate;
-    
+
     switch (enMode)
     {
         case VO_MODE_1MUX:
@@ -1085,7 +1085,7 @@ HI_S32 SAMPLE_COMM_VO_StartChn(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
         case VO_MODE_16MUX:
             u32WndNum = 16;
             u32Square = 4;
-            break;            
+            break;
         default:
             SAMPLE_PRT("failed with %#x!\n", s32Ret);
             return HI_FAILURE;
@@ -1137,7 +1137,7 @@ HI_S32 SAMPLE_COMM_VO_StartChn(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
             printf("%s(%d):failed with %#x!\n", __FUNCTION__, __LINE__, s32Ret);
             return HI_FAILURE;
         }
-        
+
         s32Ret = HI_MPI_VO_SetChnFrameRate(VoLayer, i, s32ChnFrmRate);
         if (HI_SUCCESS != s32Ret)
         {
@@ -1166,7 +1166,7 @@ HI_S32 SAMPLE_COMM_VO_StartChn_2(VO_LAYER VoLayer)
     VO_CHN_ATTR_S stChnAttr;
     VO_VIDEO_LAYER_ATTR_S stLayerAttr;
     HI_S32 s32ChnFrmRate;
-    
+
         u32Square = 2;
 
     s32Ret = HI_MPI_VO_GetVideoLayerAttr(VoLayer, &stLayerAttr);
@@ -1194,7 +1194,7 @@ HI_S32 SAMPLE_COMM_VO_StartChn_2(VO_LAYER VoLayer)
     }
 
 
-    
+
     //for (i=0; i<u32WndNum; i++)
     for (i=0; i<2; i++)
     {
@@ -1211,7 +1211,7 @@ HI_S32 SAMPLE_COMM_VO_StartChn_2(VO_LAYER VoLayer)
             printf("%s(%d):failed with %#x!\n", __FUNCTION__, __LINE__, s32Ret);
             return HI_FAILURE;
         }
-        
+
         s32Ret = HI_MPI_VO_SetChnFrameRate(VoLayer, i, s32ChnFrmRate);
         if (HI_SUCCESS != s32Ret)
         {
@@ -1318,7 +1318,7 @@ HI_S32 SAMPLE_COMM_VO_HdmiStart(VO_INTF_SYNC_E enIntfSync)
     HI_MPI_HDMI_GetAttr(HI_HDMI_ID_0, &stAttr);
 
     stAttr.bEnableHdmi = HI_TRUE;
-    
+
     stAttr.bEnableVideo = HI_TRUE;
     stAttr.enVideoFmt = enVideoFmt;
 
@@ -1337,15 +1337,15 @@ HI_S32 SAMPLE_COMM_VO_HdmiStart(VO_INTF_SYNC_E enIntfSync)
     stAttr.bEnableSpdInfoFrame = HI_FALSE;
     stAttr.bEnableMpegInfoFrame = HI_FALSE;
 
-    stAttr.bDebugFlag = HI_FALSE;          
+    stAttr.bDebugFlag = HI_FALSE;
     stAttr.bHDCPEnable = HI_FALSE;
 
     stAttr.b3DEnable = HI_FALSE;
-    
+
     HI_MPI_HDMI_SetAttr(HI_HDMI_ID_0, &stAttr);
 
     HI_MPI_HDMI_Start(HI_HDMI_ID_0);
-    
+
     printf("HDMI start success.\n");
     return HI_SUCCESS;
 }
@@ -1403,7 +1403,7 @@ HI_S32 SAMPLE_COMM_VO_StopChn(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
             u32WndNum = 16;
             break;
         }
-        
+
         default:
             SAMPLE_PRT("failed with %#x!\n", s32Ret);
             return HI_FAILURE;
@@ -1417,14 +1417,14 @@ HI_S32 SAMPLE_COMM_VO_StopChn(VO_LAYER VoLayer, SAMPLE_VO_MODE_E enMode)
             SAMPLE_PRT("failed with %#x!\n", s32Ret);
             return HI_FAILURE;
         }
-    }    
+    }
     return s32Ret;
 }
 
 HI_S32 SAMPLE_COMM_VO_StopLayer(VO_LAYER VoLayer)
 {
     HI_S32 s32Ret = HI_SUCCESS;
-    
+
     s32Ret = HI_MPI_VO_DisableVideoLayer(VoLayer);
     if (s32Ret != HI_SUCCESS)
     {
@@ -1437,7 +1437,7 @@ HI_S32 SAMPLE_COMM_VO_StopLayer(VO_LAYER VoLayer)
 HI_S32 SAMPLE_COMM_VO_StopDev(VO_DEV VoDev)
 {
     HI_S32 s32Ret = HI_SUCCESS;
-    
+
     s32Ret = HI_MPI_VO_Disable(VoDev);
     if (s32Ret != HI_SUCCESS)
     {
@@ -1499,8 +1499,8 @@ HI_S32 SAMPLE_COMM_VI_UnBindVpss(SAMPLE_VI_MODE_E enViMode)
         SAMPLE_PRT("SAMPLE_COMM_VI_Mode2Param failed!\n");
         return HI_FAILURE;
     }
-    
-    VpssGrp = 0;    
+
+    VpssGrp = 0;
     for (i=0; i<stViParam.s32ViDevCnt; i++)
     {
         ViDev = i * stViParam.s32ViDevInterval;
@@ -1508,22 +1508,22 @@ HI_S32 SAMPLE_COMM_VI_UnBindVpss(SAMPLE_VI_MODE_E enViMode)
         for (j=0; j<stViParam.s32ViChnCnt; j++)
         {
             ViChn = j * stViParam.s32ViChnInterval;
-            
+
             stSrcChn.enModId = HI_ID_VIU;
             stSrcChn.s32DevId = ViDev;
             stSrcChn.s32ChnId = ViChn;
-        
+
             stDestChn.enModId = HI_ID_VPSS;
             stDestChn.s32DevId = VpssGrp;
             stDestChn.s32ChnId = 0;
-        
+
             s32Ret = HI_MPI_SYS_UnBind(&stSrcChn, &stDestChn);
             if (s32Ret != HI_SUCCESS)
             {
                 SAMPLE_PRT("failed with %#x!\n", s32Ret);
                 return HI_FAILURE;
             }
-            
+
             VpssGrp ++;
         }
     }
@@ -1559,7 +1559,7 @@ HI_S32 SAMPLE_COMM_VPSS_Stop(HI_S32 s32GrpCnt, HI_S32 s32ChnCnt)
                 return HI_FAILURE;
             }
         }
-    
+
         s32Ret = HI_MPI_VPSS_DestroyGrp(VpssGrp);
         if (s32Ret != HI_SUCCESS)
         {
@@ -1587,7 +1587,7 @@ HI_VOID SAMPLE_COMM_SYS_Exit(void)
     for(i=0; i<VB_MAX_POOLS; i++)
     {
          HI_MPI_VB_DestroyPool(i);
-    }	
+    }
     HI_MPI_VB_Exit();
     return;
 }
@@ -1709,7 +1709,7 @@ HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType, VIDEO_NOR
                         stH264Cbr.u32BitRate = 256; /* average bit rate */
                         break;
                   case PIC_QVGA:    /* 320 * 240 */
-                  case PIC_CIF: 
+                  case PIC_CIF:
                         stH264Cbr.u32BitRate = 256;
                         break;
                   case PIC_D1:
@@ -1717,20 +1717,20 @@ HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType, VIDEO_NOR
                         stH264Cbr.u32BitRate = 1024*2;
                         break;
                   case PIC_HD720:   /* 1280 * 720 */
-                	   stH264Cbr.u32BitRate = 1024*3;
-                	   break;
+                       stH264Cbr.u32BitRate = 1024*3;
+                       break;
                   case PIC_HD1080:  /* 1920 * 1080 */
-                  	   stH264Cbr.u32BitRate = 1024*1;
-                	   break;
+                       stH264Cbr.u32BitRate = 1024*1;
+                       break;
                   default :
                         stH264Cbr.u32BitRate = 1024*4;
                         break;
                 }
-                
+
                 stH264Cbr.u32FluctuateLevel = 0; /* average bit rate */
                 memcpy(&stVencChnAttr.stRcAttr.stAttrH264Cbr, &stH264Cbr, sizeof(VENC_ATTR_H264_CBR_S));
             }
-            else if (SAMPLE_RC_FIXQP == enRcMode) 
+            else if (SAMPLE_RC_FIXQP == enRcMode)
             {
                 stVencChnAttr.stRcAttr.enRcMode = VENC_RC_MODE_H264FIXQP;
                 stH264FixQp.u32Gop = (VIDEO_ENCODING_MODE_PAL== enNorm)?25:30;
@@ -1740,7 +1740,7 @@ HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType, VIDEO_NOR
                 stH264FixQp.u32PQp = 23;
                 memcpy(&stVencChnAttr.stRcAttr.stAttrH264FixQp, &stH264FixQp,sizeof(VENC_ATTR_H264_FIXQP_S));
             }
-            else if (SAMPLE_RC_VBR == enRcMode) 
+            else if (SAMPLE_RC_VBR == enRcMode)
             {
                 stVencChnAttr.stRcAttr.enRcMode = VENC_RC_MODE_H264VBR;
                 stH264Vbr.u32Gop = (VIDEO_ENCODING_MODE_PAL== enNorm)?25:30;
@@ -1752,22 +1752,22 @@ HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType, VIDEO_NOR
                 switch (enSize)
                 {
                     case PIC_QCIF:
-                	   stH264Vbr.u32MaxBitRate= 256*3; /* average bit rate */
-                	   break;
+                       stH264Vbr.u32MaxBitRate= 256*3; /* average bit rate */
+                       break;
                     case PIC_QVGA:    /* 320 * 240 */
                     case PIC_CIF:
-                	   stH264Vbr.u32MaxBitRate = 512*3;
+                       stH264Vbr.u32MaxBitRate = 512*3;
                        break;
                     case PIC_D1:
                     case PIC_VGA:	   /* 640 * 480 */
-                	   stH264Vbr.u32MaxBitRate = 1024*2;
+                       stH264Vbr.u32MaxBitRate = 1024*2;
                         break;
                     case PIC_HD720:   /* 1280 * 720 */
-                	   stH264Vbr.u32MaxBitRate = 1024*3;
-                	   break;
+                       stH264Vbr.u32MaxBitRate = 1024*3;
+                       break;
                     case PIC_HD1080:  /* 1920 * 1080 */
-                  	   stH264Vbr.u32MaxBitRate = 1024*6;
-                	   break;
+                       stH264Vbr.u32MaxBitRate = 1024*6;
+                       break;
                     default :
                         stH264Vbr.u32MaxBitRate = 1024*4*3;
                         break;
@@ -1780,7 +1780,7 @@ HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType, VIDEO_NOR
             }
         }
         break;
-        
+
         case PT_MJPEG:
         {
             stMjpegAttr.u32MaxPicWidth = stPicSize.u32Width;
@@ -1811,27 +1811,27 @@ HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType, VIDEO_NOR
                 {
                     case PIC_QCIF:
                         stVencChnAttr.stRcAttr.stAttrMjpegeCbr.u32BitRate = 384*3; /* average bit rate */
-                	   break;
+                       break;
                     case PIC_QVGA:    /* 320 * 240 */
                     case PIC_CIF:
-                	   stVencChnAttr.stRcAttr.stAttrMjpegeCbr.u32BitRate = 768*3;
+                       stVencChnAttr.stRcAttr.stAttrMjpegeCbr.u32BitRate = 768*3;
                         break;
                     case PIC_D1:
                     case PIC_VGA:	   /* 640 * 480 */
-                	   stVencChnAttr.stRcAttr.stAttrMjpegeCbr.u32BitRate = 1024*3*3;
+                       stVencChnAttr.stRcAttr.stAttrMjpegeCbr.u32BitRate = 1024*3*3;
                         break;
                     case PIC_HD720:   /* 1280 * 720 */
-                	   stVencChnAttr.stRcAttr.stAttrMjpegeCbr.u32BitRate = 1024*5*3;
-                	   break;
+                       stVencChnAttr.stRcAttr.stAttrMjpegeCbr.u32BitRate = 1024*5*3;
+                       break;
                     case PIC_HD1080:  /* 1920 * 1080 */
-                  	   stVencChnAttr.stRcAttr.stAttrMjpegeCbr.u32BitRate = 1024*10*3;
-                	   break;
+                       stVencChnAttr.stRcAttr.stAttrMjpegeCbr.u32BitRate = 1024*10*3;
+                       break;
                     default :
                         stVencChnAttr.stRcAttr.stAttrMjpegeCbr.u32BitRate = 1024*7*3;
                         break;
                 }
             }
-            else if (SAMPLE_RC_VBR == enRcMode) 
+            else if (SAMPLE_RC_VBR == enRcMode)
             {
                 stVencChnAttr.stRcAttr.enRcMode = VENC_RC_MODE_MJPEGVBR;
                 stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32StatTime = 1;
@@ -1843,34 +1843,34 @@ HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType, VIDEO_NOR
                 {
                     case PIC_QCIF:
                         stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32MaxBitRate= 256*3; /* average bit rate */
-                	   break;
+                       break;
                     case PIC_QVGA:    /* 320 * 240 */
                     case PIC_CIF:
-                	   stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32MaxBitRate = 512*3;
+                       stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32MaxBitRate = 512*3;
                         break;
                     case PIC_D1:
                     case PIC_VGA:	   /* 640 * 480 */
-                	   stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32MaxBitRate = 1024*2*3;
+                       stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32MaxBitRate = 1024*2*3;
                         break;
                     case PIC_HD720:   /* 1280 * 720 */
-                	   stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32MaxBitRate = 1024*3*3;
-                	   break;
+                       stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32MaxBitRate = 1024*3*3;
+                       break;
                     case PIC_HD1080:  /* 1920 * 1080 */
-                  	   stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32MaxBitRate = 1024*6*3;
-                	   break;
+                       stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32MaxBitRate = 1024*6*3;
+                       break;
                     default :
                        stVencChnAttr.stRcAttr.stAttrMjpegeVbr.u32MaxBitRate = 1024*4*3;
                        break;
                 }
             }
-            else 
+            else
             {
                 SAMPLE_PRT("cann't support other mode in this version!\n");
                 return HI_FAILURE;
             }
         }
         break;
-            
+
         case PT_JPEG:
             stJpegAttr.u32PicWidth  = stPicSize.u32Width;
             stJpegAttr.u32PicHeight = stPicSize.u32Height;
@@ -1906,7 +1906,7 @@ HI_S32 SAMPLE_COMM_VENC_Start(VENC_CHN VencChn, PAYLOAD_TYPE_E enType, VIDEO_NOR
 }
 
 /******************************************************************************
-* function : venc bind vo           
+* function : venc bind vo
 ******************************************************************************/
 HI_S32 SAMPLE_COMM_VENC_BindVo(VO_DEV VoDev,VO_CHN VoChn,VENC_CHN VeChn)
 {
@@ -1934,45 +1934,45 @@ HI_S32 SAMPLE_COMM_VENC_BindVo(VO_DEV VoDev,VO_CHN VoChn,VENC_CHN VeChn)
 #if 0
 void *get_stream_thread(void *data)
 {
-	int i = 0;	
-	int s32Ret;
-	/* decide the stream file name, and open file to save stream */
-	int VencChn = i;
+    int i = 0;
+    int s32Ret;
+    /* decide the stream file name, and open file to save stream */
+    int VencChn = i;
     VENC_CHN_ATTR_S stVencChnAttr;
     PAYLOAD_TYPE_E enPayLoadType[VENC_MAX_CHN_NUM];
     HI_CHAR aszFileName[VENC_MAX_CHN_NUM][64];
     FILE *pFile;
 
-	s32Ret = HI_MPI_VENC_GetChnAttr(VencChn, &stVencChnAttr);
-	if(s32Ret != HI_SUCCESS)
-	{
-		SAMPLE_PRT("HI_MPI_VENC_GetChnAttr chn[%d] failed with %#x!\n", \
-			   VencChn, s32Ret);
-		return NULL;
-	}
-	enPayLoadType[i] = stVencChnAttr.stVeAttr.enType;
+    s32Ret = HI_MPI_VENC_GetChnAttr(VencChn, &stVencChnAttr);
+    if(s32Ret != HI_SUCCESS)
+    {
+        SAMPLE_PRT("HI_MPI_VENC_GetChnAttr chn[%d] failed with %#x!\n", \
+               VencChn, s32Ret);
+        return NULL;
+    }
+    enPayLoadType[i] = stVencChnAttr.stVeAttr.enType;
 
-	sprintf(aszFileName[i], "stream_chn%d.h264", i);
-	pFile[i] = fopen(aszFileName[i], "wb");
-	if (!pFile[i])
-	{
-		SAMPLE_PRT("open file[%s] failed!\n", 
-			   aszFileName[i]);
-		return NULL;
-	}
+    sprintf(aszFileName[i], "stream_chn%d.h264", i);
+    pFile[i] = fopen(aszFileName[i], "wb");
+    if (!pFile[i])
+    {
+        SAMPLE_PRT("open file[%s] failed!\n",
+               aszFileName[i]);
+        return NULL;
+    }
 
-	/* Set Venc Fd. */
-	VencFd[i] = HI_MPI_VENC_GetFd(i);
-	if (VencFd[i] < 0)
-	{
-		SAMPLE_PRT("HI_MPI_VENC_GetFd failed with %#x!\n", 
-			   VencFd[i]);
-		return NULL;
-	}
-	if (maxfd <= VencFd[i])
-	{
-		maxfd = VencFd[i];
-	}
+    /* Set Venc Fd. */
+    VencFd[i] = HI_MPI_VENC_GetFd(i);
+    if (VencFd[i] < 0)
+    {
+        SAMPLE_PRT("HI_MPI_VENC_GetFd failed with %#x!\n",
+               VencFd[i]);
+        return NULL;
+    }
+    if (maxfd <= VencFd[i])
+    {
+        maxfd = VencFd[i];
+    }
 }
 #endif
 
@@ -2028,7 +2028,7 @@ HI_S32 SAMPLE_COMM_VENC_SaveH264(FILE* fpH264File, VENC_STREAM_S *pstStream)
 
         fflush(fpH264File);
     }
-    
+
 
     return HI_SUCCESS;
 }
@@ -2043,7 +2043,7 @@ HI_S32 SAMPLE_COMM_VENC_SaveStream(PAYLOAD_TYPE_E enType,FILE *pFd, VENC_STREAM_
 
     if (PT_H264 == enType)
     {
-        s32Ret = SAMPLE_COMM_VENC_SaveH264(pFd, pstStream);  
+        s32Ret = SAMPLE_COMM_VENC_SaveH264(pFd, pstStream);
     }
     else if (PT_MJPEG == enType)
     {
@@ -2079,7 +2079,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
     HI_S32 s32Ret;
     VENC_CHN VencChn;
     PAYLOAD_TYPE_E enPayLoadType[VENC_MAX_CHN_NUM];
-    
+
     pstPara = (SAMPLE_VENC_GETSTREAM_PARA_S*)p;
     s32ChnTotal = pstPara->s32Cnt;
 
@@ -2115,7 +2115,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
         pFile[i] = fopen(aszFileName[i], "wb");
         if (!pFile[i])
         {
-            SAMPLE_PRT("open file[%s] failed!\n", 
+            SAMPLE_PRT("open file[%s] failed!\n",
                    aszFileName[i]);
             return NULL;
         }
@@ -2124,7 +2124,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
         VencFd[i] = HI_MPI_VENC_GetFd(i);
         if (VencFd[i] < 0)
         {
-            SAMPLE_PRT("HI_MPI_VENC_GetFd failed with %#x!\n", 
+            SAMPLE_PRT("HI_MPI_VENC_GetFd failed with %#x!\n",
                    VencFd[i]);
             return NULL;
         }
@@ -2174,21 +2174,21 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                         SAMPLE_PRT("HI_MPI_VENC_Query chn[%d] failed with %#x!\n", i, s32Ret);
                         break;
                     }
-					
-					/*******************************************************
-						step 2.2 : suggest to check both u32CurPacks and u32LeftStreamFrames at the same time,for example:
-					   if(0 == stStat.u32CurPacks || 0 == stStat.u32LeftStreamFrames)
-						{
-							  SAMPLE_PRT("NOTE: Current  frame is NULL!\n");
-							  continue;
-						}
-					*******************************************************/
-					  if(0 == stStat.u32CurPacks)
-					  {
-					  	
-						  SAMPLE_PRT("NOTE: Current  frame is NULL!\n");
-						  continue;
-					  }
+
+                    /*******************************************************
+                        step 2.2 : suggest to check both u32CurPacks and u32LeftStreamFrames at the same time,for example:
+                       if(0 == stStat.u32CurPacks || 0 == stStat.u32LeftStreamFrames)
+                        {
+                              SAMPLE_PRT("NOTE: Current  frame is NULL!\n");
+                              continue;
+                        }
+                    *******************************************************/
+                      if(0 == stStat.u32CurPacks)
+                      {
+
+                          SAMPLE_PRT("NOTE: Current  frame is NULL!\n");
+                          continue;
+                      }
                     /*******************************************************
                      step 2.3 : malloc corresponding number of pack nodes.
                     *******************************************************/
@@ -2198,7 +2198,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                         SAMPLE_PRT("malloc stream pack failed!\n");
                         break;
                     }
-                    
+
                     /*******************************************************
                      step 2.4 : call mpi to get one-frame stream
                     *******************************************************/
@@ -2214,7 +2214,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                         break;
                     }
 
-					/*******************************************************
+                    /*******************************************************
                      step 2.5 : save frame to file
                     *******************************************************/
                     s32Ret = SAMPLE_COMM_VENC_SaveStream(enPayLoadType[i], pFile[i], &stStream);
@@ -2226,14 +2226,14 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                         break;
                     }
 #if 1
-					// ln debug
+                    // ln debug
                     pthread_mutex_lock(&compose_info.mutex);
                     if(compose_info.translate_venc_stream){
                        compose_info.translate_venc_stream(i,  &stStream);
                     }
                     pthread_mutex_unlock(&compose_info.mutex);
 #endif
-					
+
 
                     /*******************************************************
                      step 2.6 : release stream
@@ -2317,22 +2317,22 @@ int hisi_video_mem_init()
 
 HI_S32 start_mpi_video_stream(HI_VOID)
 {
-   	SAMPLE_VI_MODE_E enViMode = SAMPLE_VI_MODE_8_1080P;
+    SAMPLE_VI_MODE_E enViMode = SAMPLE_VI_MODE_8_1080P;
 
     VIDEO_NORM_E enNorm = VIDEO_ENCODING_MODE_PAL;
 
     HI_S32 s32VpssGrpCnt = 4;
-    
+
     VPSS_GRP VpssGrp;
     VPSS_GRP_ATTR_S stGrpAttr;
     VPSS_CHN VpssChn_VoHD0 = VPSS_CHN0;
     VO_DEV VoDev;
-	VO_LAYER VoLayer;
+    VO_LAYER VoLayer;
     VO_CHN VoChn;
     VO_PUB_ATTR_S stVoPubAttr;
-	VO_VIDEO_LAYER_ATTR_S stLayerAttr;
+    VO_VIDEO_LAYER_ATTR_S stLayerAttr;
     SAMPLE_VO_MODE_E enVoMode;
-    
+
     HI_S32 i;
     HI_S32 s32Ret = HI_SUCCESS;
     HI_CHAR ch;
@@ -2362,15 +2362,15 @@ HI_S32 start_mpi_video_stream(HI_VOID)
         goto END_8X1080P_0;
     }
 
-	memset(&stGrpAttr,0,sizeof(VPSS_GRP_ATTR_S));
-	stGrpAttr.u32MaxW = stSize.u32Width;
-	stGrpAttr.u32MaxH = stSize.u32Height;
-	stGrpAttr.bNrEn = HI_TRUE;
-	//stGrpAttr.bNrEn = HI_FALSE;
+    memset(&stGrpAttr,0,sizeof(VPSS_GRP_ATTR_S));
+    stGrpAttr.u32MaxW = stSize.u32Width;
+    stGrpAttr.u32MaxH = stSize.u32Height;
+    stGrpAttr.bNrEn = HI_TRUE;
+    //stGrpAttr.bNrEn = HI_FALSE;
     stGrpAttr.enDieMode = VPSS_DIE_MODE_NODIE;
     //stGrpAttr.enDieMode = VPSS_DIE_MODE_AUTO;
     //stGrpAttr.enDieMode = VPSS_DIE_MODE_DIE;
-	stGrpAttr.enPixFmt = SAMPLE_PIXEL_FORMAT;
+    stGrpAttr.enPixFmt = SAMPLE_PIXEL_FORMAT;
     s32Ret = SAMPLE_COMM_VPSS_Start(s32VpssGrpCnt, &stSize, VPSS_MAX_CHN_NUM,NULL);
     if (HI_SUCCESS != s32Ret)
     {
@@ -2392,43 +2392,43 @@ HI_S32 start_mpi_video_stream(HI_VOID)
 #if 1
     printf("start vo HD0.\n");
     VoDev = SAMPLE_VO_DEV_DHD0;
-	VoLayer = SAMPLE_VO_LAYER_VHD0;
+    VoLayer = SAMPLE_VO_LAYER_VHD0;
     u32WndNum = 8;
     enVoMode = VO_MODE_4MUX ;
-    
+
     //stVoPubAttr.enIntfSync = VO_OUTPUT_1080P60;
     stVoPubAttr.enIntfSync = VO_OUTPUT_1080P50;
-	stVoPubAttr.enIntfType = VO_INTF_HDMI|VO_INTF_VGA;
+    stVoPubAttr.enIntfType = VO_INTF_HDMI|VO_INTF_VGA;
     stVoPubAttr.u32BgColor = 0x000000ff;
-	s32Ret = SAMPLE_COMM_VO_StartDev(VoDev, &stVoPubAttr);
-	if (HI_SUCCESS != s32Ret)
-	{
-		SAMPLE_PRT("Start SAMPLE_COMM_VO_StartDev failed!\n");
-		goto END_8X1080P_3;
-	}
+    s32Ret = SAMPLE_COMM_VO_StartDev(VoDev, &stVoPubAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Start SAMPLE_COMM_VO_StartDev failed!\n");
+        goto END_8X1080P_3;
+    }
 
-	memset(&(stLayerAttr), 0 , sizeof(VO_VIDEO_LAYER_ATTR_S));
-	s32Ret = SAMPLE_COMM_VO_GetWH(stVoPubAttr.enIntfSync, \
-		&stLayerAttr.stImageSize.u32Width, \
-		&stLayerAttr.stImageSize.u32Height, \
-		&stLayerAttr.u32DispFrmRt);
-	if (HI_SUCCESS != s32Ret)
-	{
-		SAMPLE_PRT("Start SAMPLE_COMM_VO_GetWH failed!\n");
-		goto END_8X1080P_3;
-	}
-	
-	stLayerAttr.enPixFormat = SAMPLE_PIXEL_FORMAT;
-	stLayerAttr.stDispRect.s32X 	  = 0;
-	stLayerAttr.stDispRect.s32Y 	  = 0;
-	stLayerAttr.stDispRect.u32Width   = stLayerAttr.stImageSize.u32Width;
-	stLayerAttr.stDispRect.u32Height  = stLayerAttr.stImageSize.u32Height;
-	s32Ret = SAMPLE_COMM_VO_StartLayer(VoLayer, &stLayerAttr);
-	if (HI_SUCCESS != s32Ret)
-	{
-		SAMPLE_PRT("Start SAMPLE_COMM_VO_StartLayer failed!\n");
-		goto END_8X1080P_3;
-	}
+    memset(&(stLayerAttr), 0 , sizeof(VO_VIDEO_LAYER_ATTR_S));
+    s32Ret = SAMPLE_COMM_VO_GetWH(stVoPubAttr.enIntfSync, \
+        &stLayerAttr.stImageSize.u32Width, \
+        &stLayerAttr.stImageSize.u32Height, \
+        &stLayerAttr.u32DispFrmRt);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Start SAMPLE_COMM_VO_GetWH failed!\n");
+        goto END_8X1080P_3;
+    }
+
+    stLayerAttr.enPixFormat = SAMPLE_PIXEL_FORMAT;
+    stLayerAttr.stDispRect.s32X 	  = 0;
+    stLayerAttr.stDispRect.s32Y 	  = 0;
+    stLayerAttr.stDispRect.u32Width   = stLayerAttr.stImageSize.u32Width;
+    stLayerAttr.stDispRect.u32Height  = stLayerAttr.stImageSize.u32Height;
+    s32Ret = SAMPLE_COMM_VO_StartLayer(VoLayer, &stLayerAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Start SAMPLE_COMM_VO_StartLayer failed!\n");
+        goto END_8X1080P_3;
+    }
 
 
     s32Ret = SAMPLE_COMM_VO_StartChn(VoLayer, enVoMode);
@@ -2454,9 +2454,9 @@ HI_S32 start_mpi_video_stream(HI_VOID)
     {
         VoChn = i;
         VpssGrp = i;
-        
+
         s32Ret = SAMPLE_COMM_VO_BindVpss(VoDev,VoChn,VpssGrp,VpssChn_VoHD0);
-	
+
 #if 1 // ln debug
         //s32Ret = SAMPLE_COMM_VO_BindVpss(VoDev,VoChn,VpssGrp,VPSS_CHN3);
         //s32Ret = SAMPLE_COMM_VO_BindVpss(VoDev,VoChn,VpssGrp,VPSS_CHN3);
@@ -2475,49 +2475,49 @@ HI_S32 start_mpi_video_stream(HI_VOID)
 #if 1 // ln debug add virtual vo dev
     printf("start vo virtual.\n");
     VoDev = SAMPLE_VO_DEV_VIRT0;
-	VoLayer = SAMPLE_VO_LAYER_VIRT0;
-	//
+    VoLayer = SAMPLE_VO_LAYER_VIRT0;
+    //
     u32WndNum = 2;
     //u32WndNum = 1;
     //enVoMode = VO_MODE_9MUX  ;
     enVoMode = VO_MODE_4MUX  ;
-    
+
     //stVoPubAttr.enIntfSync = VO_OUTPUT_1080P30;
     stVoPubAttr.enIntfSync = VO_OUTPUT_1080P25;
     //
-	stVoPubAttr.enIntfType = VO_INTF_HDMI;
+    stVoPubAttr.enIntfType = VO_INTF_HDMI;
     stVoPubAttr.u32BgColor = 0x000ff00;
-	s32Ret = SAMPLE_COMM_VO_StartDev(VoDev, &stVoPubAttr);
-	if (HI_SUCCESS != s32Ret)
-	{
-		SAMPLE_PRT("Start SAMPLE_COMM_VO_StartDev failed!\n");
-		goto END_8X1080P_3;
-	}
+    s32Ret = SAMPLE_COMM_VO_StartDev(VoDev, &stVoPubAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Start SAMPLE_COMM_VO_StartDev failed!\n");
+        goto END_8X1080P_3;
+    }
 
-	memset(&(stLayerAttr), 0 , sizeof(VO_VIDEO_LAYER_ATTR_S));
+    memset(&(stLayerAttr), 0 , sizeof(VO_VIDEO_LAYER_ATTR_S));
 
-	s32Ret = SAMPLE_COMM_VO_GetWH(stVoPubAttr.enIntfSync, \
-		&stLayerAttr.stImageSize.u32Width, \
-		&stLayerAttr.stImageSize.u32Height, \
-		&stLayerAttr.u32DispFrmRt);
-	if (HI_SUCCESS != s32Ret)
-	{
-		SAMPLE_PRT("Start SAMPLE_COMM_VO_GetWH failed!\n");
-		goto END_8X1080P_3;
-	}
-	
-	stLayerAttr.enPixFormat = SAMPLE_PIXEL_FORMAT;
-	//stLayerAttr.enPixFormat = PIXEL_FORMAT_YUV_SEMIPLANAR_422;
-	stLayerAttr.stDispRect.s32X 	  = 0;
-	stLayerAttr.stDispRect.s32Y 	  = 0;
-	stLayerAttr.stDispRect.u32Width   = stLayerAttr.stImageSize.u32Width;
-	stLayerAttr.stDispRect.u32Height  = stLayerAttr.stImageSize.u32Height;
-	s32Ret = SAMPLE_COMM_VO_StartLayer(VoLayer, &stLayerAttr);
-	if (HI_SUCCESS != s32Ret)
-	{
-		SAMPLE_PRT("Start SAMPLE_COMM_VO_StartLayer failed!\n");
-		goto END_8X1080P_3;
-	}
+    s32Ret = SAMPLE_COMM_VO_GetWH(stVoPubAttr.enIntfSync, \
+        &stLayerAttr.stImageSize.u32Width, \
+        &stLayerAttr.stImageSize.u32Height, \
+        &stLayerAttr.u32DispFrmRt);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Start SAMPLE_COMM_VO_GetWH failed!\n");
+        goto END_8X1080P_3;
+    }
+
+    stLayerAttr.enPixFormat = SAMPLE_PIXEL_FORMAT;
+    //stLayerAttr.enPixFormat = PIXEL_FORMAT_YUV_SEMIPLANAR_422;
+    stLayerAttr.stDispRect.s32X 	  = 0;
+    stLayerAttr.stDispRect.s32Y 	  = 0;
+    stLayerAttr.stDispRect.u32Width   = stLayerAttr.stImageSize.u32Width;
+    stLayerAttr.stDispRect.u32Height  = stLayerAttr.stImageSize.u32Height;
+    s32Ret = SAMPLE_COMM_VO_StartLayer(VoLayer, &stLayerAttr);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Start SAMPLE_COMM_VO_StartLayer failed!\n");
+        goto END_8X1080P_3;
+    }
 
     //s32Ret = SAMPLE_COMM_VO_StartChn(VoLayer, enVoMode);
     s32Ret = SAMPLE_COMM_VO_StartChn_2(VoLayer);
@@ -2548,7 +2548,7 @@ HI_S32 start_mpi_video_stream(HI_VOID)
     {
         VoChn = i;
         VpssGrp = i;
-        
+
 #if 1 // ln debug
         s32Ret = SAMPLE_COMM_VO_BindVpss(3,VoChn,VpssGrp,VPSS_CHN3);
 #else
@@ -2562,58 +2562,59 @@ HI_S32 start_mpi_video_stream(HI_VOID)
             goto END_8X1080P_4;
         }
     }
-	/******************************************
-	  step 5: start stream venc (big + little)
-	 ******************************************/
-	PAYLOAD_TYPE_E enPayLoad[3]= {PT_H264, PT_JPEG,PT_H264};
-	PIC_SIZE_E enSize[3] = {PIC_HD1080, PIC_HD720,PIC_CIF};
-	int enRcMode = SAMPLE_RC_VBR;
+    /******************************************
+      step 5: start stream venc (big + little)
+     ******************************************/
+    PAYLOAD_TYPE_E enPayLoad[3]= {PT_H264, PT_JPEG,PT_H264};
+    PIC_SIZE_E enSize[3] = {PIC_HD1080, PIC_HD720,PIC_CIF};
+    //int enRcMode = SAMPLE_RC_VBR;
+    int enRcMode = SAMPLE_RC_CBR;
     HI_U32 u32Profile = 1; /*0: baseline; 1:MP; 2:HP 3:svc-t */
 
-	i = 0;
-	/*** main stream,H264**/
-	int VencChn = i*2;
-	VpssGrp = i;
+    i = 0;
+    /*** main stream,H264**/
+    int VencChn = i*2;
+    VpssGrp = i;
 
-	VIDEO_NORM_E gs_enNorm = VIDEO_ENCODING_MODE_NTSC;
+    VIDEO_NORM_E gs_enNorm = VIDEO_ENCODING_MODE_NTSC;
 
-	s32Ret = SAMPLE_COMM_VENC_Start(VencChn, enPayLoad[0], gs_enNorm, enSize[0], enRcMode,u32Profile);
-	if (HI_SUCCESS != s32Ret)
-	{
-		SAMPLE_PRT("Start Venc failed!\n");
-		exit(-1);
-	}
-	//s32Ret = SAMPLE_COMM_VENC_BindVpss(VencChn,VpssGrp, VPSS_BSTR_CHN);
+    s32Ret = SAMPLE_COMM_VENC_Start(VencChn, enPayLoad[0], gs_enNorm, enSize[0], enRcMode,u32Profile);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("Start Venc failed!\n");
+        exit(-1);
+    }
+    //s32Ret = SAMPLE_COMM_VENC_BindVpss(VencChn,VpssGrp, VPSS_BSTR_CHN);
 
-	s32Ret = SAMPLE_COMM_VENC_BindVo(3, 0,0);
-	if (HI_SUCCESS != s32Ret)
-	{
-		SAMPLE_PRT("SAMPLE_COMM_VENC_BindVo failed!\n");
-		exit(-1);
-	}
+    s32Ret = SAMPLE_COMM_VENC_BindVo(3, 0,0);
+    if (HI_SUCCESS != s32Ret)
+    {
+        SAMPLE_PRT("SAMPLE_COMM_VENC_BindVo failed!\n");
+        exit(-1);
+    }
 
     /******************************************
-     step 6: stream venc process -- get stream, then save it to file. 
+     step 6: stream venc process -- get stream, then save it to file.
     ******************************************/
     s32Ret = SAMPLE_COMM_VENC_StartGetStream(1);
     if (HI_SUCCESS != s32Ret)
     {
         SAMPLE_PRT("Start Venc failed!\n");
-		exit(-1);
+        exit(-1);
     }
-	
+
 
 #endif
 
-	
-	/******************************************
-	step 8: HD0 switch mode 
-	******************************************/
-	VoDev = SAMPLE_VO_DEV_DHD0;
-	VoLayer = SAMPLE_VO_LAYER_VHD0;
-	enVoMode = VO_MODE_9MUX;
+
+    /******************************************
+    step 8: HD0 switch mode
+    ******************************************/
+    VoDev = SAMPLE_VO_DEV_DHD0;
+    VoLayer = SAMPLE_VO_LAYER_VHD0;
+    enVoMode = VO_MODE_9MUX;
     while(1)
-    {    
+    {
         return 0;
     }
 
@@ -2623,25 +2624,25 @@ HI_S32 start_mpi_video_stream(HI_VOID)
 
 
 END_8X1080P_5:
-	VoDev = SAMPLE_VO_DEV_DSD0;
-	VoLayer = SAMPLE_VO_LAYER_VSD0;
-	VoChn = 0;
-	enVoMode = VO_MODE_9MUX;
+    VoDev = SAMPLE_VO_DEV_DSD0;
+    VoLayer = SAMPLE_VO_LAYER_VSD0;
+    VoChn = 0;
+    enVoMode = VO_MODE_9MUX;
     SAMPLE_COMM_VO_StopChn(VoLayer, enVoMode);
-	SAMPLE_COMM_VO_StopLayer(VoLayer);
+    SAMPLE_COMM_VO_StopLayer(VoLayer);
     SAMPLE_COMM_VO_StopDev(VoDev);
 
 END_8X1080P_4:
 #ifdef HDMI_SUPPORT
-	if (stVoPubAttr.enIntfType & VO_INTF_HDMI)
+    if (stVoPubAttr.enIntfType & VO_INTF_HDMI)
     {
         SAMPLE_COMM_VO_HdmiStop();
     }
 #endif
     VoDev = SAMPLE_VO_DEV_DHD0;
-	VoLayer = SAMPLE_VO_LAYER_VHD0;
+    VoLayer = SAMPLE_VO_LAYER_VHD0;
     u32WndNum = 8;
-    enVoMode = VO_MODE_9MUX;   
+    enVoMode = VO_MODE_9MUX;
     SAMPLE_COMM_VO_StopChn(VoDev, enVoMode);
     for(i=0;i<u32WndNum;i++)
     {
@@ -2649,7 +2650,7 @@ END_8X1080P_4:
         VpssGrp = i;
         SAMPLE_COMM_VO_UnBindVpss(VoDev,VoChn,VpssGrp,VpssChn_VoHD0);
     }
-	SAMPLE_COMM_VO_StopLayer(VoLayer);
+    SAMPLE_COMM_VO_StopLayer(VoLayer);
     SAMPLE_COMM_VO_StopDev(VoDev);
 
 END_8X1080P_3:
@@ -2660,7 +2661,7 @@ END_8X1080P_1:
     SAMPLE_COMM_VI_Stop(enViMode);
 END_8X1080P_0:
     SAMPLE_COMM_SYS_Exit();
-    
+
     return s32Ret;
 }
 
@@ -2671,10 +2672,10 @@ END_8X1080P_0:
 ******************************************************************************/
 int main(int argc, char *argv[])
 {
-	int s32Ret;
+    int s32Ret;
 
-	rtmp_h264_server_start();
-	s32Ret = SAMPLE_VIO_8_1080P_DUAL();
+    rtmp_h264_server_start();
+    s32Ret = SAMPLE_VIO_8_1080P_DUAL();
 
     exit(s32Ret);
 }
