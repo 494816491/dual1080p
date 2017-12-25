@@ -190,13 +190,13 @@ int open_rtmp_stream(int chn)
 {
     int ret;
     struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[chn];
+    info_msg("open_rtmp_stream %s", rtmp_h264_data->rtmp_ip);
     pthread_mutex_lock(&rtmp_h264_data->mutex);
-
 
     ret = avformat_alloc_output_context2(&rtmp_h264_data->out_context, NULL, "flv", rtmp_h264_data->rtmp_ip);
     if(ret < 0){
         err_msg("avformat_alloc_output_context2 failed,%s\n", av_err2str(ret));
-        goto end_label;
+        goto err_label;
     }
 
     add_video_stream(rtmp_h264_data);
@@ -219,15 +219,21 @@ int open_rtmp_stream(int chn)
             char buf[1024];
             av_strerror(ret, buf, sizeof(buf));
             printf("could not open '%s': %d, err = %s\n", rtmp_h264_data->rtmp_ip, ret, buf);
-            goto end_label;
+            goto err_label;
         }
     }
     ret = avformat_write_header(rtmp_h264_data->out_context, NULL);
     if (ret < 0) {
         err_msg( "Fail to write the header of output ");
-        goto end_label;
+        goto err_label;
     }
-end_label:
+
+    pthread_mutex_unlock(&rtmp_h264_data->mutex);
+    return 0;
+
+err_label:
+
+    close_rtmp_stream(chn);
     pthread_mutex_unlock(&rtmp_h264_data->mutex);
     return 0;
 }
@@ -240,7 +246,11 @@ int rtmp_h264_server_init()
 
     for(i = 0; i < RTMP_H264_CHN_NUM; i++){
         struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[i];
-        pthread_mutex_init(&rtmp_h264_data->mutex, NULL);
+
+        pthread_mutexattr_t attr;
+        pthread_mutexattr_init(&attr);
+        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+        pthread_mutex_init(&rtmp_h264_data->mutex, &attr);
     }
     audio_resample_init();
     return 0;
@@ -313,19 +323,26 @@ int send_rtmp_video_stream(Mal_StreamBlock *block)
     pkt.pts = block->i_pts / 1000;
     pkt.dts = pkt.pts;
 
+    //
     pthread_mutex_lock(&rtmp_h264_data->mutex);
-        ret = av_interleaved_write_frame(rtmp_h264_data->out_context, &pkt);
+    //再次检查out_contex
+    if(!rtmp_h264_data->out_context || !rtmp_h264_data->video_stream){
+        goto unlock_label;
+    }
+    ret = av_interleaved_write_frame(rtmp_h264_data->out_context, &pkt);
+    if(ret != 0){
+        err_msg("av_interleaved_write_frame error video,chn_num = %d\n",rtmp_h264_data->chn_num);
 
-        if(ret != 0){
-            err_msg("av_interleaved_write_frame error video,chn_num = %d\n",rtmp_h264_data->chn_num);
+        char buf[1024];
+        av_strerror(ret, buf, sizeof(buf));
+        printf("av_interleaved_write_frame failed, video: %d, err = %s\n",  ret, buf);
 
-            char buf[1024];
-            av_strerror(ret, buf, sizeof(buf));
-            printf("could not open : %d, err = %s\n",  ret, buf);
-            pthread_mutex_unlock(&rtmp_h264_data->mutex);
-            return -1;
-        }
+        close_rtmp_stream(block->chn_num);
+    }
+
+unlock_label:
     pthread_mutex_unlock(&rtmp_h264_data->mutex);
+
 
     if(should_release_i_frame){
         free(packet_buff);
@@ -380,16 +397,20 @@ int send_rtmp_audio_stream( Mal_StreamBlock *block)
 
     pthread_mutex_lock(&rtmp_h264_data->mutex);
     //info_msg("av_interleaved_write_frame");
+    //再次判断out context是否NULL
+    if(!rtmp_h264_data->out_context || !rtmp_h264_data->audio_stream){
+        goto unlock_label;
+    }
     ret = av_interleaved_write_frame(rtmp_h264_data->out_context, &pkt);
     if(ret != 0){
-        pthread_mutex_unlock(&rtmp_h264_data->mutex);
         err_msg("av_interleaved_write_frame error audio,chn_num = %d\n",rtmp_h264_data->chn_num);
 
         char buf[1024];
         av_strerror(ret, buf, sizeof(buf));
-        printf("could not open : %d, err = %s\n",  ret, buf);
-        return -1;
+        printf("could not av_interleaved_write_frame : %d, err = %s\n",  ret, buf);
+        close_rtmp_stream(block->chn_num);
     }
+unlock_label:
     pthread_mutex_unlock(&rtmp_h264_data->mutex);
 
     return 0;
@@ -399,6 +420,19 @@ int send_rtmp_audio_stream( Mal_StreamBlock *block)
 
 int close_rtmp_stream(int chn)
 {
+    struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[chn];
+    info_msg("before close_rtmp_stream");
+
+    pthread_mutex_lock(&rtmp_h264_data->mutex);
+    if(rtmp_h264_data->out_context){
+        av_write_trailer(rtmp_h264_data->out_context);
+        avio_closep(&rtmp_h264_data->out_context->pb);
+        avformat_free_context(rtmp_h264_data->out_context);
+    }
+    rtmp_h264_data->out_context = NULL;
+    rtmp_h264_data->audio_stream = NULL;
+    rtmp_h264_data->video_stream = NULL;
+    pthread_mutex_unlock(&rtmp_h264_data->mutex);
     return 0;
 }
 
