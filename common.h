@@ -26,6 +26,7 @@
 #define OSD_FONTS_FILE_PATH			"/nfsroot/tmp/font/fontttf.ttf" /* OSD需要的字体文件 */
 
 #define MAL_OSD_TEXT_FLAG_TIME   0x00000001
+#define SAVE_FILE_TIME 60
 
 
 typedef enum vi_mode_e

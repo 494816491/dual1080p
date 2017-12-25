@@ -5,6 +5,7 @@
 #include "disk_manage.h"
 #include "debug.h"
 #include "configdata.h"
+#include "common.h"
 
 #define MAX_VENC_CHN_SAVE 8
 
@@ -348,7 +349,7 @@ int start_watch_routine()
                 struct timespec current_tp;
                 clock_gettime(CLOCK_MONOTONIC, &current_tp);
 
-                if(current_tp.tv_sec - last_sec > 10){
+                if(current_tp.tv_sec - last_sec > SAVE_FILE_TIME){
                     last_sec = current_tp.tv_sec;
                     info_msg("switch_new_file");
                     switch_new_file(0, NULL);
