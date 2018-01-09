@@ -751,9 +751,10 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
 #endif
 
     /*** Start VI Dev ***/
-    for(i=0; i<stViParam.s32ViDevCnt; i++)
+//    for(i=0; i<stViParam.s32ViDevCnt; i++)  // lwx
+    for(i=1; i<stViParam.s32ViDevCnt; i++)
     {
-        ViDev = i * stViParam.s32ViDevInterval;
+        ViDev = 1;//i * stViParam.s32ViDevInterval;
         s32Ret = SAMPLE_COMM_VI_StartDev(ViDev, enViMode);
         if (HI_SUCCESS != s32Ret)
         {
@@ -766,7 +767,11 @@ HI_S32 SAMPLE_COMM_VI_Start(SAMPLE_VI_MODE_E enViMode, VIDEO_NORM_E enNorm)
     /*** Start VI Chn ***/
     for(i=0; i<stViParam.s32ViChnCnt; i++)
     {
-        ViChn = i * stViParam.s32ViChnInterval;
+        if(i == 0)
+            ViChn = 4;
+        else
+            ViChn = 6;
+        //ViChn = i * stViParam.s32ViChnInterval;
 
         if (SAMPLE_VI_MODE_8_1080P == enViMode
          || SAMPLE_VI_MODE_8_720P == enViMode)
@@ -871,7 +876,7 @@ HI_S32 SAMPLE_COMM_VPSS_Start(HI_S32 s32GrpCnt, SIZE_S *pstSize, HI_S32 s32ChnCn
             /* Set Vpss Chn attr */
             stChnAttr.bSpEn = HI_FALSE;
             stChnAttr.bUVInvert = HI_FALSE;
-            stChnAttr.bBorderEn = HI_TRUE;
+            stChnAttr.bBorderEn = HI_FALSE;
             stChnAttr.stBorder.u32Color = 0xff00;
             stChnAttr.stBorder.u32LeftWidth = 2;
             stChnAttr.stBorder.u32RightWidth = 2;
@@ -946,9 +951,14 @@ HI_S32 SAMPLE_COMM_VI_BindVpss(SAMPLE_VI_MODE_E enViMode)
     }
 
     VpssGrp = 0;
-    for (j=0; j<stViParam.s32ViChnCnt; j++)
+ //   for (j=0; j<stViParam.s32ViChnCnt; j++) //by lwx
+    for(j=0; j<2;j++)
     {
-        ViChn = j * stViParam.s32ViChnInterval;
+        if(j==0)
+            ViChn = 4;
+        else
+            ViChn = 6;
+        //ViChn = j * stViParam.s32ViChnInterval;  // by lwx
 
         stSrcChn.enModId = HI_ID_VIU;
         stSrcChn.s32DevId = 0;
@@ -2111,6 +2121,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                    stVencChnAttr.stVeAttr.enType, s32Ret);
             return NULL;
         }
+#if 0
         sprintf(aszFileName[i], "stream_chn%d%s", i, szFilePostfix);
         pFile[i] = fopen(aszFileName[i], "wb");
         if (!pFile[i])
@@ -2119,7 +2130,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                    aszFileName[i]);
             return NULL;
         }
-
+#endif
         /* Set Venc Fd. */
         VencFd[i] = HI_MPI_VENC_GetFd(i);
         if (VencFd[i] < 0)
@@ -2213,7 +2224,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                                s32Ret);
                         break;
                     }
-
+#if 0
                     /*******************************************************
                      step 2.5 : save frame to file
                     *******************************************************/
@@ -2225,6 +2236,7 @@ HI_VOID* SAMPLE_COMM_VENC_GetVencStreamProc(HI_VOID *p)
                         SAMPLE_PRT("save stream failed!\n");
                         break;
                     }
+#endif
 #if 1
                     // ln debug
                     pthread_mutex_lock(&compose_info.mutex);

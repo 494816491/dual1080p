@@ -50,7 +50,7 @@ int audio_hook_translate_audio_stream(void (*translate_audio_stream)(int channel
 
 static HI_BOOL gs_bUserGetMode = HI_FALSE;
 
-#define WRITE_AUDIO_STREAM 0
+#define WRITE_AUDIO_STREAM 1
 
 
 #define SAMPLE_AUDIO_PTNUMPERFRM   320
@@ -120,8 +120,8 @@ HI_S32 SAMPLE_COMM_AUDIO_StartAi(AUDIO_DEV AiDevId, HI_S32 s32AiChnCnt,
         printf("%s: HI_MPI_AI_Enable(%d) failed with %#x\n", __FUNCTION__, AiDevId, s32Ret);
         return s32Ret;
     }
-
-    for (i = 0; i < s32AiChnCnt; i++)
+    int totalChannel = 2;
+    for (i = 2; i < totalChannel+1; i++)  // we use AIN3  add ai chn + 2 // by lwx
     {
         s32Ret = HI_MPI_AI_EnableChn(AiDevId, i);
         if (s32Ret)
@@ -307,9 +307,9 @@ static char* SAMPLE_AUDIO_Pt2Str(PAYLOAD_TYPE_E enType)
 ******************************************************************************/
 static FILE * SAMPLE_AUDIO_OpenAencFile(AENC_CHN AeChn, PAYLOAD_TYPE_E enType)
 {
-    FILE *pfd;
+    FILE *pfd = NULL;
     HI_CHAR aszFileName[128];
-
+#if WRITE_AUDIO_STREAM
     /* create file for save stream*/
     sprintf(aszFileName, "audio_chn%d.%s", AeChn, SAMPLE_AUDIO_Pt2Str(enType));
     pfd = fopen(aszFileName, "w+");
@@ -319,6 +319,7 @@ static FILE * SAMPLE_AUDIO_OpenAencFile(AENC_CHN AeChn, PAYLOAD_TYPE_E enType)
         return NULL;
     }
     printf("open stream file:\"%s\" for aenc ok\n", aszFileName);
+#endif
     return pfd;
 }
 
@@ -390,7 +391,7 @@ void *SAMPLE_COMM_AUDIO_AencProc(void *parg)
             }
             pthread_mutex_unlock(&audio_info.mutex);
 #endif
-#if WRITE_AUDIO_STREAM
+#if 0
             /* save audio stream to file */
             fwrite(stStream.pStream,1,stStream.u32Len, pstAencCtl->pfd);
 #endif
@@ -466,7 +467,7 @@ int start_mpi_audio_stream()
     stAioAttr.u32EXFlag      = 1;
     stAioAttr.u32FrmNum      = 30;
     stAioAttr.u32PtNumPerFrm = SAMPLE_AUDIO_PTNUMPERFRM;
-    stAioAttr.u32ChnCnt      = 1;
+    stAioAttr.u32ChnCnt      = 4;
     stAioAttr.u32ClkChnCnt   = 4;
     stAioAttr.u32ClkSel      = 0;
 
@@ -513,7 +514,7 @@ int start_mpi_audio_stream()
     for (i=0; i<s32AencChnCnt; i++)
     {
         AeChn = i;
-        AiChn = i;
+        AiChn = 2;//i;  //by lwx
 #if 0
         if (HI_TRUE == gs_bUserGetMode)
         {
@@ -560,13 +561,14 @@ int start_mpi_audio_stream()
             return HI_FAILURE;
         }
 #endif
-
+#if WRITE_AUDIO_STREAM
         pfd = SAMPLE_AUDIO_OpenAencFile(AdChn, gs_enPayloadType);
         if (!pfd)
         {
             SAMPLE_DBG(HI_FAILURE);
             return HI_FAILURE;
         }
+#endif
         s32Ret = SAMPLE_COMM_AUDIO_CreatTrdAencAdec(AeChn, AdChn, pfd);
         if (s32Ret != HI_SUCCESS)
         {
