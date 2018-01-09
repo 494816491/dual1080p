@@ -238,7 +238,7 @@ static void translate_audio_stream(int channel, AUDIO_STREAM_S *pstStream)
 
 int watch_get_container_save_param(int chn, struct container_param_s *param)
 {
-    param->audio_enable = 0;
+    param->audio_enable = 1;
     param->audio_sample_rate = 8000;
 
     memset(param->file_path, 0, sizeof(param->file_path));
