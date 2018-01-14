@@ -26,6 +26,7 @@ struct rtmp_chn_param_st{
 
 int rtmp_h264_server_init();
 
+int watch_rtmp_video_audio_is_alive(int chn);
 int open_rtmp_stream(int chn);
 int close_rtmp_stream(int chn);
 int set_rtmp_chn_param(int chn, struct rtmp_chn_param_st *param);

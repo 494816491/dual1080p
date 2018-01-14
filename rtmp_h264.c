@@ -88,7 +88,11 @@ static int add_video_stream(struct rtmp_h264_st *rtmp_h264_data)
     codec_context->time_base.den = rtmp_h264_data->video_frame_rate;
     codec_context->gop_size = rtmp_h264_data->video_frame_rate;
 #if 1
-    codec_context->extradata = ext_data;
+    //codec_context->extradata = ext_data;
+    codec_context->extradata = av_malloc(sizeof(ext_data));
+    memcpy(codec_context->extradata, ext_data, sizeof(ext_data));
+
+    //printf("codec_context->extradata = %p\n", ext_data);
     codec_context->extradata_size = sizeof(ext_data);
 #endif
 
@@ -101,8 +105,6 @@ static int add_video_stream(struct rtmp_h264_st *rtmp_h264_data)
 #endif
 
     return 0;
-end:
-    exit(-1);
 }
 
 static int add_audio_stream(struct rtmp_h264_st *rtmp_h264_data)
@@ -192,6 +194,7 @@ int open_rtmp_stream(int chn)
     struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[chn];
     info_msg("open_rtmp_stream %s", rtmp_h264_data->rtmp_ip);
     pthread_mutex_lock(&rtmp_h264_data->mutex);
+    //avformat_network_init();
 
     ret = avformat_alloc_output_context2(&rtmp_h264_data->out_context, NULL, "flv", rtmp_h264_data->rtmp_ip);
     if(ret < 0){
@@ -199,20 +202,25 @@ int open_rtmp_stream(int chn)
         goto err_label;
     }
 
+
     add_video_stream(rtmp_h264_data);
 
     if(rtmp_h264_data->audio_enable){
         add_audio_stream(rtmp_h264_data);
     }
 
+
     if (!(rtmp_h264_data->out_context->oformat->flags & AVFMT_NOFILE))
     {
         //info_msg( "before avio_open\n");
+#if 1
         AVDictionary *avdic=NULL;
         char option_key[]="rtmp_buffer";
         char option_value[]="50";
         av_dict_set(&avdic,option_key,option_value,0);
+#endif
 
+        info_msg("avio_open2, rtmp_h264_data->rtmp_ip = %s", rtmp_h264_data->rtmp_ip);
         ret = avio_open2(&rtmp_h264_data->out_context->pb, rtmp_h264_data->rtmp_ip, AVIO_FLAG_WRITE, NULL, &avdic);
         if (ret < 0)
         {
@@ -227,7 +235,6 @@ int open_rtmp_stream(int chn)
         err_msg( "Fail to write the header of output ");
         goto err_label;
     }
-
     pthread_mutex_unlock(&rtmp_h264_data->mutex);
     return 0;
 
@@ -235,6 +242,22 @@ err_label:
 
     close_rtmp_stream(chn);
     pthread_mutex_unlock(&rtmp_h264_data->mutex);
+    return 0;
+}
+
+int watch_rtmp_video_audio_is_alive(int chn)
+{
+    struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[chn];
+    pthread_mutex_lock(&rtmp_h264_data->mutex);
+    if(rtmp_h264_data->out_context && rtmp_h264_data->video_stream && rtmp_h264_data->audio_stream){
+        info_msg("watch_rtmp_video_audio_is_alive , rtmp stream is ok");
+    }else{
+        info_msg("watch_rtmp_video_audio_is_alive failed, restart rtmp stream");
+        open_rtmp_stream(chn);
+    }
+
+    pthread_mutex_unlock(&rtmp_h264_data->mutex);
+
     return 0;
 }
 
@@ -331,11 +354,10 @@ int send_rtmp_video_stream(Mal_StreamBlock *block)
     }
     ret = av_interleaved_write_frame(rtmp_h264_data->out_context, &pkt);
     if(ret != 0){
-        err_msg("av_interleaved_write_frame error video,chn_num = %d\n",rtmp_h264_data->chn_num);
 
         char buf[1024];
         av_strerror(ret, buf, sizeof(buf));
-        printf("av_interleaved_write_frame failed, video: %d, err = %s\n",  ret, buf);
+        err_msg("av_interleaved_write_frame failed, video: %d, err = %s\n", ret, buf);
 
         close_rtmp_stream(block->chn_num);
     }
@@ -421,17 +443,45 @@ unlock_label:
 int close_rtmp_stream(int chn)
 {
     struct rtmp_h264_st *rtmp_h264_data = &rtmp_h264_info[chn];
-    info_msg("before close_rtmp_stream");
 
     pthread_mutex_lock(&rtmp_h264_data->mutex);
+    info_msg("before close_rtmp_stream");
+#if 1
     if(rtmp_h264_data->out_context){
+
+
+        //rtmp_h264_data->out_context->
+#if 1
         av_write_trailer(rtmp_h264_data->out_context);
-        avio_closep(&rtmp_h264_data->out_context->pb);
+#endif
+        //avcodec_free_context(&rtmp_h264_data->video_stream->codec);
+        //avcodec_close(rtmp_h264_data->video_stream->codec);
+#if 1
+        info_msg("after av_write_trailer");
+        if(rtmp_h264_data->out_context->pb){
+            avio_closep(&rtmp_h264_data->out_context->pb);
+        }
+#endif
+#if 1
+        if(rtmp_h264_data->video_stream){
+            avcodec_close(rtmp_h264_data->video_stream->codec);
+            //avcodec_free_context(&rtmp_h264_data->video_stream->codec);
+        }
+        if(rtmp_h264_data->audio_stream){
+            avcodec_close(rtmp_h264_data->audio_stream->codec);
+            //avcodec_free_context(&rtmp_h264_data->audio_stream->codec);
+        }
+#endif
+#if 1
         avformat_free_context(rtmp_h264_data->out_context);
+#endif
+        //avformat_close_input(&rtmp_h264_data->out_context);
     }
+#endif
     rtmp_h264_data->out_context = NULL;
     rtmp_h264_data->audio_stream = NULL;
     rtmp_h264_data->video_stream = NULL;
+    //avformat_network_deinit();
     pthread_mutex_unlock(&rtmp_h264_data->mutex);
     return 0;
 }

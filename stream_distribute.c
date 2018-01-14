@@ -272,8 +272,11 @@ int start_watch_routine()
         struct rtmp_chn_param_st param = {0};
         param.chn_num = 0;
 #if 1
-        //sprintf(, "rtmp://192.168.22.2/live/chn0");
+#if 0
+        sprintf(param.ip_addr, "rtmp://192.168.22.2/live/chn0");
+#else
         status_get_rtmp_addr(param.ip_addr);
+#endif
 #else
         sprintf(param.ip_addr, "rtmp://ps3.live.panda.tv/live_panda/fdd3dac64c9f2df18898a695b1b2bfa5?sign=1467df8ab3fe03ec2ce4d29049253f12&time=1513438213&wm=2&wml=1&vr=6&extra=0");
 #endif
@@ -317,9 +320,9 @@ int start_watch_routine()
     int disk_is_full = 0;
     while(1){
 #if 1
-        time_slice++;
         if(is_disk_is_exit()){
             //60秒检查一次磁盘空间,如果需要循环覆盖则删除旧文件，如果不需要循环覆盖就停止写文件
+        time_slice++;
 
 
             if((time_slice % 60) == 0){
@@ -354,6 +357,11 @@ int start_watch_routine()
                     info_msg("switch_new_file");
                     switch_new_file(0, NULL);
                 }
+            }
+
+            //2分钟检查一次rtmp
+            if((time_slice % 20) == 0){
+                watch_rtmp_video_audio_is_alive(0);
             }
 
         }else{
